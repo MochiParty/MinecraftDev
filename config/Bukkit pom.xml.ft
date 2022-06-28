@@ -52,6 +52,13 @@
               <altSnapshotDeploymentRepository>[server]::default::[url]</altSnapshotDeploymentRepository>
           </configuration>
       </plugin>
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <configuration>
+              <outputDirectory></outputDirectory>
+          </configuration>
+      </plugin>
     </plugins>
     <resources>
       <resource>
