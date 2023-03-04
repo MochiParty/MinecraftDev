@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -123,16 +123,20 @@ class MethodTargetMember(val classAndMethod: ClassAndMethodNode, mixin: PsiClass
 
 private fun Sequence<MixinTargetMember>.filterAccessible(
     psiClass: PsiClass,
-    target: PsiClass
+    target: PsiClass,
 ): Sequence<MixinTargetMember> {
-    return if (psiClass equivalentTo target) this else filter {
-        (it.access and (Opcodes.ACC_PUBLIC or Opcodes.ACC_PROTECTED)) != 0
+    return if (psiClass equivalentTo target) {
+        this
+    } else {
+        filter {
+            (it.access and (Opcodes.ACC_PUBLIC or Opcodes.ACC_PROTECTED)) != 0
+        }
     }
 }
 
 private fun PsiClass.streamMixinHierarchy(): Sequence<PsiClass> {
     return generateSequence(this) {
-        it.superClass?.takeIf { it.isMixin }
+        it.superClass?.takeIf { superClass -> superClass.isMixin }
     }
 }
 

@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -43,7 +43,7 @@ class MinecraftClassCreateAction :
         CAPTION,
         "Class generation for modders",
         GeneralAssets.MC_TEMPLATE,
-        JavaModuleSourceRootTypes.SOURCES
+        JavaModuleSourceRootTypes.SOURCES,
     ),
     DumbAware {
 
@@ -64,27 +64,29 @@ class MinecraftClassCreateAction :
 
             if (mcVersion < MinecraftVersions.MC1_17) {
                 builder.addKind("Block", icon, MinecraftTemplates.FORGE_BLOCK_TEMPLATE)
+                builder.addKind("Enchantment", icon, MinecraftTemplates.FORGE_ENCHANTMENT_TEMPLATE)
                 builder.addKind("Item", icon, MinecraftTemplates.FORGE_ITEM_TEMPLATE)
                 builder.addKind("Packet", icon, MinecraftTemplates.FORGE_PACKET_TEMPLATE)
-                builder.addKind("Enchantment", icon, MinecraftTemplates.FORGE_ENCHANTMENT_TEMPLATE)
             } else if (mcVersion < MinecraftVersions.MC1_18) {
                 builder.addKind("Block", icon, MinecraftTemplates.FORGE_1_17_BLOCK_TEMPLATE)
-                builder.addKind("Item", icon, MinecraftTemplates.FORGE_1_17_ITEM_TEMPLATE)
-                builder.addKind("Packet", icon, MinecraftTemplates.FORGE_1_17_PACKET_TEMPLATE)
                 builder.addKind("Enchantment", icon, MinecraftTemplates.FORGE_1_17_ENCHANTMENT_TEMPLATE)
+                builder.addKind("Item", icon, MinecraftTemplates.FORGE_1_17_ITEM_TEMPLATE)
+                builder.addKind("Mob Effect", icon, MinecraftTemplates.FORGE_1_17_MOB_EFFECT_TEMPLATE)
+                builder.addKind("Packet", icon, MinecraftTemplates.FORGE_1_17_PACKET_TEMPLATE)
             } else {
                 builder.addKind("Block", icon, MinecraftTemplates.FORGE_1_17_BLOCK_TEMPLATE)
-                builder.addKind("Item", icon, MinecraftTemplates.FORGE_1_17_ITEM_TEMPLATE)
-                builder.addKind("Packet", icon, MinecraftTemplates.FORGE_1_18_PACKET_TEMPLATE)
                 builder.addKind("Enchantment", icon, MinecraftTemplates.FORGE_1_17_ENCHANTMENT_TEMPLATE)
+                builder.addKind("Item", icon, MinecraftTemplates.FORGE_1_17_ITEM_TEMPLATE)
+                builder.addKind("Mob Effect", icon, MinecraftTemplates.FORGE_1_17_MOB_EFFECT_TEMPLATE)
+                builder.addKind("Packet", icon, MinecraftTemplates.FORGE_1_18_PACKET_TEMPLATE)
             }
         }
         if (isFabric) {
             val icon = PlatformAssets.FABRIC_ICON
 
             builder.addKind("Block", icon, MinecraftTemplates.FABRIC_BLOCK_TEMPLATE)
-            builder.addKind("Item", icon, MinecraftTemplates.FABRIC_ITEM_TEMPLATE)
             builder.addKind("Enchantment", icon, MinecraftTemplates.FABRIC_ENCHANTMENT_TEMPLATE)
+            builder.addKind("Item", icon, MinecraftTemplates.FABRIC_ITEM_TEMPLATE)
         }
     }
 
@@ -115,7 +117,7 @@ class MinecraftClassCreateAction :
 
     private class ClassInputValidator(
         private val project: Project,
-        private val directory: PsiDirectory
+        private val directory: PsiDirectory,
     ) : InputValidatorEx {
         override fun getErrorText(inputString: String): String? {
             if (inputString.isNotEmpty() && !PsiNameHelper.getInstance(project).isQualifiedName(inputString)) {

@@ -3,257 +3,155 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
 
 package com.demonwav.mcdev.creator
 
-import com.demonwav.mcdev.creator.buildsystem.gradle.GradleBuildSystem
-import com.demonwav.mcdev.creator.buildsystem.gradle.GradleCreator
-import com.demonwav.mcdev.util.SemanticVersion
-import com.demonwav.mcdev.util.VersionRange
-import com.intellij.ide.util.projectWizard.ModuleWizardStep
-import com.intellij.ide.util.projectWizard.WizardContext
-import com.intellij.openapi.observable.properties.GraphPropertyImpl.Companion.graphProperty
-import com.intellij.openapi.observable.properties.PropertyGraph
+import com.demonwav.mcdev.creator.ProjectSetupFinalizer.Factory
+import com.demonwav.mcdev.creator.step.NewProjectWizardChainStep.Companion.nextStep
+import com.demonwav.mcdev.util.mapFirstNotNull
+import com.intellij.ide.wizard.AbstractNewProjectWizardStep
+import com.intellij.ide.wizard.NewProjectWizardStep
+import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.observable.properties.GraphProperty
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.Sdk
-import com.intellij.openapi.roots.ui.configuration.JdkComboBox
-import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel
-import com.intellij.ui.SortedComboBoxModel
-import com.intellij.ui.components.Label
-import com.intellij.ui.layout.Row
-import com.intellij.ui.layout.RowBuilder
-import com.intellij.ui.layout.panel
-import com.intellij.util.ui.UIUtil
-import javax.swing.JComponent
-import org.gradle.util.GradleVersion
+import com.intellij.openapi.ui.validation.AFTER_GRAPH_PROPAGATION
+import com.intellij.openapi.ui.validation.validationErrorFor
+import com.intellij.ui.JBColor
+import com.intellij.ui.dsl.builder.Panel
+import com.intellij.ui.dsl.builder.Placeholder
+import javax.swing.JLabel
+import javax.swing.JPanel
 
-class ProjectSetupFinalizerWizardStep(
-    val creator: MinecraftProjectCreator,
-    val context: WizardContext
-) : ModuleWizardStep() {
-
-    private val finalizers: List<ProjectSetupFinalizer> =
-        listOf(JdkProjectSetupFinalizer(), GradleProjectSetupFinalizer())
-    private val finalizersWithRow: MutableMap<ProjectSetupFinalizer, Row> = linkedMapOf()
-    private val applicableFinalizers: MutableSet<ProjectSetupFinalizer> = linkedSetOf()
-
-    private val panel by lazy {
-        panel {
-            row(Label("<html><font size=\"6\">Project finalization</size></html>")) {}
-            finalizers.forEach { finalizer ->
-                val row = titledRow("<html><font size=\"5\">${finalizer.title}</size></html>") {
-                    with(finalizer) {
-                        buildComponent(creator, context)
-                    }
+class ProjectSetupFinalizerWizardStep(parent: NewProjectWizardStep) : AbstractNewProjectWizardStep(parent) {
+    private val finalizers: List<ProjectSetupFinalizer> by lazy {
+        val factories = ProjectSetupFinalizer.EP_NAME.extensionList
+        val result = mutableListOf<ProjectSetupFinalizer>()
+        if (factories.isNotEmpty()) {
+            var par: NewProjectWizardStep = this
+            for (factory in factories) {
+                val finalizer = factory.create(par)
+                result += finalizer
+                par = finalizer
+            }
+        }
+        result
+    }
+    private val step by lazy {
+        when (finalizers.size) {
+            0 -> null
+            1 -> finalizers[0]
+            else -> {
+                var step = finalizers[0].nextStep { finalizers[1] }
+                for (i in 2 until finalizers.size) {
+                    step = step.nextStep { finalizers[i] }
                 }
-                finalizersWithRow[finalizer] = row
+                step
             }
         }
     }
 
-    override fun isStepVisible(): Boolean = true
-
-    override fun getComponent(): JComponent = panel
-
-    override fun updateStep() {
-        applicableFinalizers.clear()
-        for ((finalizer, row) in finalizersWithRow) {
-            if (finalizer.isApplicable(creator, context)) {
-                applicableFinalizers.add(finalizer)
-                finalizer.validateConfigs(creator, context)
-                row.visible = true
-            } else {
-                row.visible = false
+    override fun setupUI(builder: Panel) {
+        step?.setupUI(builder)
+        if (finalizers.isNotEmpty()) {
+            builder.row {
+                cell(JPanel())
+                    .validationRequestor(AFTER_GRAPH_PROPAGATION(propertyGraph))
+                    .validation(
+                        validationErrorFor<JPanel> {
+                            finalizers.mapFirstNotNull(ProjectSetupFinalizer::validate)
+                        },
+                    )
             }
         }
     }
 
-    override fun updateDataModel(): Unit = applicableFinalizers.forEach { it.apply(creator, context) }
-
-    override fun validate(): Boolean = applicableFinalizers.all { it.validateChanges(creator, context) }
+    override fun setupProject(project: Project) {
+        step?.setupProject(project)
+    }
 }
 
 /**
- * Used to adjust project configurations before project creation begins, or simply display a summary.
- * Can also block project creation if problems are found with the configurations (such as version incompatibilities.)
+ * A step applied after all other steps for all Minecraft project creators. These steps can also block project creation
+ * by providing extra validations.
+ *
+ * To add custom project setup finalizers, register a [Factory] to the
+ * `com.demonwav.minecraft-dev.projectSetupFinalizer` extension point.
  */
-interface ProjectSetupFinalizer {
-
-    val title: String
+interface ProjectSetupFinalizer : NewProjectWizardStep {
+    companion object {
+        val EP_NAME = ExtensionPointName<Factory>("com.demonwav.minecraft-dev.projectSetupFinalizer")
+    }
 
     /**
-     * Builds the component to display in a titled row ([title])
-     */
-    fun RowBuilder.buildComponent(creator: MinecraftProjectCreator, context: WizardContext)
-
-    /**
-     * Whether this finalizer makes sense to appear in the given context.
+     * Validates the existing settings of this wizard.
      *
-     * If `false` is returned the component of this finalizer will not be shown, and [validateConfigs],
-     * [validateChanges] and [apply] won't be called until it returns `true`.
-     *
-     * @return `true` if this finalizer applies to the given context, `false` otherwise
+     * @return `null` if the settings are valid, or an error message if they are invalid.
      */
-    fun isApplicable(creator: MinecraftProjectCreator, context: WizardContext): Boolean
+    fun validate(): String? = null
 
-    /**
-     * Validates the existing [ProjectConfig]s of this wizard. You can also initialize
-     *
-     * Finalizers are expected to display errors in their own component.
-     *
-     * @return `true` if the project setup is valid, `false` otherwise.
-     */
-    fun validateConfigs(creator: MinecraftProjectCreator, context: WizardContext): Boolean
-
-    /**
-     * Validates the changes made in this finalizer's component.
-     *
-     * @return `true` if the changes are valid, `false` otherwise.
-     */
-    fun validateChanges(creator: MinecraftProjectCreator, context: WizardContext): Boolean
-
-    /**
-     * Applies the changes validated in [validateChanges] to the project configuration.
-     */
-    fun apply(creator: MinecraftProjectCreator, context: WizardContext)
-}
-
-class JdkProjectSetupFinalizer : ProjectSetupFinalizer {
-
-    private val errorLabel = Label("", fontColor = UIUtil.FontColor.BRIGHTER)
-        .apply {
-            icon = UIUtil.getErrorIcon()
-            isVisible = false
-        }
-    private val sdksModel = ProjectSdksModel()
-    private lateinit var jdkBox: JdkComboBox
-    private var minimumVersion: JavaSdkVersion = JavaSdkVersion.JDK_1_8
-
-    private fun highestJDKVersionRequired(creator: MinecraftProjectCreator): JavaSdkVersion? {
-        val javaVersionRequired = creator.config?.javaVersion ?: return null
-        return JavaSdkVersion.fromJavaVersion(javaVersionRequired).also {
-            minimumVersion = it ?: JavaSdkVersion.JDK_1_8
-        }
-    }
-
-    private fun isUsingCompatibleJdk(creator: MinecraftProjectCreator, sdk: Sdk): Boolean {
-        val requiredJdkVersion = highestJDKVersionRequired(creator) ?: return false
-        return JavaSdk.getInstance().isOfVersionOrHigher(sdk, requiredJdkVersion)
-    }
-
-    override val title: String = "JDK"
-
-    override fun RowBuilder.buildComponent(creator: MinecraftProjectCreator, context: WizardContext) {
-        row(errorLabel) {}
-        jdkBox = JdkComboBox(
-            context.project,
-            sdksModel,
-            { it is JavaSdk },
-            { JavaSdk.getInstance().isOfVersionOrHigher(it, minimumVersion) },
-            null,
-            null,
-        )
-        reloadJdkBox(context)
-        if (jdkBox.itemCount > 0) {
-            jdkBox.selectedIndex = 0
-        }
-        row("JDK version:") {
-            component(jdkBox).constraints(grow)
-        }
-    }
-
-    override fun isApplicable(creator: MinecraftProjectCreator, context: WizardContext) = true
-
-    private fun reloadJdkBox(context: WizardContext) {
-        sdksModel.syncSdks()
-        sdksModel.reset(context.project)
-        jdkBox.reloadModel()
-    }
-
-    private fun updateUi(usingCompatibleJdk: Boolean) {
-        if (usingCompatibleJdk) {
-            errorLabel.text = ""
-            errorLabel.isVisible = false
-            return
-        }
-
-        errorLabel.text = "Project requires at least Java ${minimumVersion.description}"
-        errorLabel.isVisible = true
-    }
-
-    override fun validateConfigs(creator: MinecraftProjectCreator, context: WizardContext): Boolean {
-        val projectJdk = context.projectJdk ?: return true
-        val usingCompatibleJdk = isUsingCompatibleJdk(creator, projectJdk)
-        updateUi(usingCompatibleJdk)
-        return usingCompatibleJdk
-    }
-
-    override fun validateChanges(creator: MinecraftProjectCreator, context: WizardContext): Boolean {
-        return isUsingCompatibleJdk(creator, jdkBox.selectedJdk ?: return false)
-    }
-
-    override fun apply(creator: MinecraftProjectCreator, context: WizardContext) {
-        val selectedJdk = jdkBox.selectedJdk
-        if (selectedJdk != null) {
-            context.projectJdk = selectedJdk
-        }
+    interface Factory {
+        fun create(parent: NewProjectWizardStep): ProjectSetupFinalizer
     }
 }
 
-class GradleProjectSetupFinalizer : ProjectSetupFinalizer {
+class JdkProjectSetupFinalizer(
+    parent: NewProjectWizardStep,
+) : AbstractNewProjectWizardStep(parent), ProjectSetupFinalizer {
+    private val sdkProperty: GraphProperty<Sdk?> = propertyGraph.property(null)
+    private var sdk by sdkProperty
+    private var sdkComboBox: JdkComboBoxWithPreference? = null
+    private var preferredJdkLabel: Placeholder? = null
+    private var preferredJdkReason = "these settings"
 
-    private val model = SortedComboBoxModel<SemanticVersion>(Comparator.naturalOrder())
+    var preferredJdk: JavaSdkVersion = JavaSdkVersion.JDK_17
+        private set
 
-    private val propertyGraph = PropertyGraph("GradleProjectSetupFinalizer graph")
-    var gradleVersion: SemanticVersion by propertyGraph.graphProperty { SemanticVersion.release() }
-    private var config: ProjectConfig? = null
+    fun setPreferredJdk(value: JavaSdkVersion, reason: String) {
+        preferredJdk = value
+        preferredJdkReason = reason
+        sdkComboBox?.setPreferredJdk(value)
+        updatePreferredJdkLabel()
+    }
 
-    private var gradleVersionRange: VersionRange? = null
+    init {
+        storeToData()
 
-    override val title: String = "Gradle"
-
-    override fun RowBuilder.buildComponent(creator: MinecraftProjectCreator, context: WizardContext) {
-        row("Gradle version:") {
-            comboBox(model, ::gradleVersion)
-                .enabled(false) // TODO load compatible Gradle versions list
+        sdkProperty.afterChange {
+            updatePreferredJdkLabel()
         }
     }
 
-    override fun isApplicable(creator: MinecraftProjectCreator, context: WizardContext): Boolean {
-        val buildSystem = creator.buildSystem
-        return buildSystem is GradleBuildSystem
-    }
-
-    override fun validateConfigs(creator: MinecraftProjectCreator, context: WizardContext): Boolean {
-        config = creator.config
-
-        if (creator.buildSystem !is GradleBuildSystem) {
-            return true
+    private fun updatePreferredJdkLabel() {
+        val sdk = this.sdk ?: return
+        val version = JavaSdk.getInstance().getVersion(sdk) ?: return
+        if (version == preferredJdk) {
+            preferredJdkLabel?.component = null
+        } else {
+            preferredJdkLabel?.component =
+                JLabel("Java ${preferredJdk.description} is recommended for $preferredJdkReason")
+                    .also { it.foreground = JBColor.YELLOW }
         }
-
-        val range = (creator.config as? GradleCreator)?.compatibleGradleVersions
-        gradleVersionRange = range
-
-        gradleVersion = range?.upper ?: SemanticVersion.parse(GradleVersion.current().version)
-        model.clear()
-        model.add(gradleVersion)
-        model.selectedItem = gradleVersion
-        return true
     }
 
-    override fun validateChanges(creator: MinecraftProjectCreator, context: WizardContext): Boolean {
-        if (creator.buildSystem !is GradleBuildSystem) {
-            return true
+    override fun setupUI(builder: Panel) {
+        with(builder) {
+            row("JDK:") {
+                val sdkComboBox = jdkComboBoxWithPreference(context, sdkProperty, "${javaClass.name}.sdk")
+                this@JdkProjectSetupFinalizer.sdkComboBox = sdkComboBox.component
+                this@JdkProjectSetupFinalizer.preferredJdkLabel = placeholder()
+                updatePreferredJdkLabel()
+            }
         }
-        return gradleVersionRange != null && gradleVersion.parts.isNotEmpty()
     }
 
-    override fun apply(creator: MinecraftProjectCreator, context: WizardContext) {
-        (creator.buildSystem as? GradleBuildSystem)?.gradleVersion = gradleVersion
+    class Factory : ProjectSetupFinalizer.Factory {
+        override fun create(parent: NewProjectWizardStep) = JdkProjectSetupFinalizer(parent)
     }
 }

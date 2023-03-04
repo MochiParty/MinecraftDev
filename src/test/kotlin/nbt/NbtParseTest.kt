@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -90,22 +90,22 @@ class NbtParseTest {
                                             listOf(
                                                 TagCompound(
                                                     mapOf(
-                                                        "key" to TagString("value")
-                                                    )
+                                                        "key" to TagString("value"),
+                                                    ),
                                                 ),
                                                 TagCompound(
                                                     mapOf(
-                                                        "key" to TagString("value")
-                                                    )
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
+                                                        "key" to TagString("value"),
+                                                    ),
+                                                ),
+                                            ),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
         )
 }

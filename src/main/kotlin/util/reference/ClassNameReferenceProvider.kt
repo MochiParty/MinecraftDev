@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -86,7 +86,9 @@ abstract class ClassNameReferenceProvider : PackageNameReferenceProvider() {
             }
 
             basePackage.length + 1
-        } else 0
+        } else {
+            0
+        }
 
         val end = packageName.indexOf('.', start)
         return if (end == -1) {

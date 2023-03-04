@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -30,7 +30,7 @@ object McpModelFG3Handler : McpModelDataHandler {
     override fun build(
         gradleModule: IdeaModule,
         node: DataNode<ModuleData>,
-        resolverCtx: ProjectResolverContext
+        resolverCtx: ProjectResolverContext,
     ) {
         val data = resolverCtx.getExtraProject(gradleModule, McpModelFG3::class.java) ?: return
 
@@ -44,7 +44,7 @@ object McpModelFG3Handler : McpModelDataHandler {
             mcVersion = minecraftDepVersion.substring(0, index)
 
             val forgeVersionEnd = minecraftDepVersion.indexOf('_')
-            if (forgeVersionEnd != -1) {
+            if (forgeVersionEnd != -1 && forgeVersionEnd > index) {
                 forgeVersion = minecraftDepVersion.substring(index + 1, forgeVersionEnd)
             }
             break
@@ -55,7 +55,7 @@ object McpModelFG3Handler : McpModelDataHandler {
             data.mcpVersion,
             data.taskOutputLocation.absolutePath,
             SrgType.TSRG,
-            forgeVersion
+            forgeVersion,
         )
 
         val gradleProjectPath = gradleModule.gradleProject.projectIdentifier.projectPath

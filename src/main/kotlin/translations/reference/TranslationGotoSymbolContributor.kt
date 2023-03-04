@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -40,7 +40,7 @@ class TranslationGotoSymbolContributor : ChooseByNameContributor {
         name: String,
         pattern: String,
         project: Project,
-        includeNonProjectItems: Boolean
+        includeNonProjectItems: Boolean,
     ): Array<NavigationItem> {
         val scope = if (includeNonProjectItems) {
             GlobalSearchScope.allScope(project)

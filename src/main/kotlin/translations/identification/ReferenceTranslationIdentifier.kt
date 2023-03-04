@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -40,9 +40,9 @@ class ReferenceTranslationIdentifier : TranslationIdentifier<PsiReferenceExpress
                     key = result.key.copy(
                         infix = result.key.infix.replace(
                             CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED,
-                            ""
-                        )
-                    )
+                            "",
+                        ),
+                    ),
                 )
             }
         }

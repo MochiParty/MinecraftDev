@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -46,7 +46,7 @@ class AtColorSettingsPage : ColorSettingsPage {
             AttributesDescriptor("Primitive Value", AtSyntaxHighlighter.PRIMITIVE),
             AttributesDescriptor("Element Name", AtSyntaxHighlighter.ELEMENT_NAME),
             AttributesDescriptor("Asterisk", AtSyntaxHighlighter.ASTERISK),
-            AttributesDescriptor("Comment", AtSyntaxHighlighter.COMMENT)
+            AttributesDescriptor("Comment", AtSyntaxHighlighter.COMMENT),
         )
     }
 }

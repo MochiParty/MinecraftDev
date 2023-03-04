@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -60,7 +60,7 @@ class GenerateAccessorAction : BaseGenerateAction(GenerateAccessorHandler()) {
             },
             commandName,
             DocCommandGroupId.noneGroupId(editor.document),
-            editor.document
+            editor.document,
         )
     }
 

@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -46,7 +46,7 @@ class SpongeReferenceContributor : PsiReferenceContributor() {
             PlatformPatterns.psiElement(PsiLanguageInjectionHost::class.java)
                 .and(FilterPattern(GetterAnnotationFilter)),
             UastGetterEventListenerReferenceResolver,
-            PsiReferenceRegistrar.HIGHER_PRIORITY
+            PsiReferenceRegistrar.HIGHER_PRIORITY,
         )
     }
 }

@@ -3,27 +3,30 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
 
 import org.cadixdev.gradle.licenser.header.HeaderStyle
+import org.cadixdev.gradle.licenser.tasks.LicenseUpdate
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.jetbrains.gradle.ext.settings
 import org.jetbrains.gradle.ext.taskTriggers
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jlleitschuh.gradle.ktlint.tasks.BaseKtLintCheckTask
+import org.jlleitschuh.gradle.ktlint.tasks.KtLintFormatTask
 
 plugins {
-    kotlin("jvm") version "1.6.20"
+    kotlin("jvm") version "1.8.0"
     java
     mcdev
     groovy
     idea
-    id("org.jetbrains.intellij") version "1.5.2"
+    id("org.jetbrains.intellij") version "1.13.0"
     id("org.cadixdev.licenser")
-    id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
+    id("org.jlleitschuh.gradle.ktlint") version "10.3.0"
 }
 
 val ideaVersionName: String by project
@@ -41,6 +44,11 @@ version = "$ideaVersionName-$coreVersion"
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+kotlin {
+    jvmToolchain {
+        languageVersion.set(java.toolchain.languageVersion.get())
     }
 }
 
@@ -75,9 +83,10 @@ dependencies {
 
     implementation(files(gradleToolingExtensionJar))
 
-    implementation(libs.templateMakerFabric)
     implementation(libs.mappingIo)
     implementation(libs.bundles.asm)
+
+    implementation(libs.bundles.fuel)
 
     jflex(libs.jflex.lib)
     jflexSkeleton(libs.jflex.skeleton) {
@@ -102,13 +111,41 @@ dependencies {
     testLibs(projects.mixinTestData)
 
     // For non-SNAPSHOT versions (unless Jetbrains fixes this...) find the version with:
-    // afterEvaluate { println(intellij.ideaDependency.buildNumber.substring(intellij.type.length + 1)) }
+    // afterEvaluate { println(intellij.ideaDependency.get().buildNumber.substring(intellij.type.get().length + 1)) }
     gradleToolingExtension(libs.groovy)
     gradleToolingExtension(libs.gradleToolingExtension)
     gradleToolingExtension(libs.annotations)
 
     testImplementation(libs.junit.api)
     testRuntimeOnly(libs.junit.entine)
+    testRuntimeOnly(libs.junit.platform.launcher)
+}
+
+val artifactType = Attribute.of("artifactType", String::class.java)
+val filtered = Attribute.of("filtered", Boolean::class.javaObjectType)
+
+dependencies {
+    attributesSchema {
+        attribute(filtered)
+    }
+    artifactTypes.getByName("jar") {
+        attributes.attribute(filtered, false)
+    }
+
+    registerTransform(Filter::class) {
+        from.attribute(filtered, false).attribute(artifactType, "jar")
+        to.attribute(filtered, true).attribute(artifactType, "jar")
+
+        parameters {
+            ideaVersion.set(providers.gradleProperty("ideaVersion"))
+            ideaVersionName.set(providers.gradleProperty("ideaVersionName"))
+            depsFile.set(layout.projectDirectory.file(".gradle/intellij-deps.json"))
+        }
+    }
+}
+
+configurations.compileClasspath {
+    attributes.attribute(filtered, true)
 }
 
 intellij {
@@ -120,10 +157,11 @@ intellij {
         "maven",
         "gradle",
         "Groovy",
+        "Kotlin",
         "org.toml.lang:$pluginTomlVersion",
         "ByteCodeViewer",
-        // needed dependencies for unit tests
         "properties",
+        // needed dependencies for unit tests
         "junit"
     )
 
@@ -165,7 +203,9 @@ tasks.withType<JavaCompile>().configureEach {
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_11.toString()
-        freeCompilerArgs = listOf("-Xjvm-default=all")
+        // K2 causes the following error: https://youtrack.jetbrains.com/issue/KT-52786
+        freeCompilerArgs = listOf(/*"-Xuse-k2", */"-Xjvm-default=all", "-Xjdk-release=11")
+        kotlinDaemonJvmArguments.add("-Xmx2G")
     }
 }
 
@@ -173,11 +213,9 @@ tasks.withType<KotlinCompile>().configureEach {
 // This is for maximum compatibility, these classes will be loaded into every Gradle import on all
 // projects (not just Minecraft), so we don't want to break that with an incompatible class version.
 tasks.named(gradleToolingExtensionSourceSet.compileJavaTaskName, JavaCompile::class) {
-    val java7Compiler = javaToolchains.compilerFor { languageVersion.set(JavaLanguageVersion.of(8)) }
+    val java7Compiler = javaToolchains.compilerFor { languageVersion.set(JavaLanguageVersion.of(11)) }
     javaCompiler.set(java7Compiler)
-    options.release.set(null as Int?)
-    sourceCompatibility = "1.5"
-    targetCompatibility = "1.5"
+    options.release.set(6)
     options.bootstrapClasspath = files(java7Compiler.map { it.metadata.installationPath.file("jre/lib/rt.jar") })
     options.compilerArgs = listOf("-Xlint:-options")
 }
@@ -213,25 +251,7 @@ tasks.test {
         }
     }
     systemProperty("NO_FS_ROOTS_ACCESS_CHECK", "true")
-
-    jvmArgs(
-        "--add-opens", "java.base/java.io=ALL-UNNAMED",
-        "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
-        "--add-opens", "java.base/java.lang.ref=ALL-UNNAMED",
-        "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
-        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-        "--add-opens", "java.base/java.util.concurrent.atomic=ALL-UNNAMED",
-        "--add-opens", "java.base/java.util.concurrent.locks=ALL-UNNAMED",
-        "--add-opens", "java.base/java.util.concurrent=ALL-UNNAMED",
-        "--add-opens", "java.base/sun.nio.fs=ALL-UNNAMED",
-        "--add-opens", "java.desktop/java.awt.event=ALL-UNNAMED",
-        "--add-opens", "java.desktop/java.awt=ALL-UNNAMED",
-        "--add-opens", "java.desktop/javax.swing.plaf.basic=ALL-UNNAMED",
-        "--add-opens", "java.desktop/javax.swing=ALL-UNNAMED",
-        "--add-opens", "java.desktop/sun.awt=ALL-UNNAMED",
-        "--add-opens", "java.desktop/sun.font=ALL-UNNAMED",
-        "--add-opens", "java.desktop/sun.swing=ALL-UNNAMED",
-    )
+    jvmArgs("--illegal-access=deny")
 }
 
 idea {
@@ -239,6 +259,8 @@ idea {
     module {
         generatedSourceDirs.add(file("build/gen"))
         excludeDirs.add(file(intellij.sandboxDir.get()))
+        isDownloadJavadoc = true
+        isDownloadSources = true
     }
 }
 
@@ -258,7 +280,7 @@ license {
                 fileTree(project.projectDir) {
                     include("*.gradle.kts", "gradle.properties")
                     exclude("**/buildSrc/**", "**/build/**")
-                }
+                },
             )
         }
         register("buildSrc") {
@@ -266,7 +288,7 @@ license {
                 project.fileTree(project.projectDir.resolve("buildSrc")) {
                     include("**/*.kt", "**/*.kts")
                     exclude("**/build/**")
-                }
+                },
             )
         }
         register("grammars") {
@@ -276,15 +298,16 @@ license {
 }
 
 ktlint {
-    enableExperimentalRules.set(true)
+    disabledRules.add("filename")
+}
+tasks.withType<BaseKtLintCheckTask>().configureEach {
+    workerMaxHeapSize.set("512m")
 }
 
 tasks.register("format") {
     group = "minecraft"
     description = "Formats source code according to project style"
-    val licenseFormat by tasks.existing
-    val ktlintFormat by tasks.existing
-    dependsOn(licenseFormat, ktlintFormat)
+    dependsOn(tasks.withType<LicenseUpdate>(), tasks.withType<KtLintFormatTask>())
 }
 
 val generateAtLexer by lexer("AtLexer", "com/demonwav/mcdev/platform/mcp/at/gen")
@@ -314,7 +337,7 @@ val generate by tasks.registering {
         generateNbttParser,
         generateLangLexer,
         generateLangParser,
-        generateTranslationTemplateLexer
+        generateTranslationTemplateLexer,
     )
 }
 
@@ -330,9 +353,8 @@ tasks.register("cleanSandbox", Delete::class) {
 }
 
 tasks.runIde {
-    maxHeapSize = "2G"
+    maxHeapSize = "4G"
 
-    jvmArgs("--add-exports=java.base/jdk.internal.vm=ALL-UNNAMED")
     System.getProperty("debug")?.let {
         systemProperty("idea.ProcessCanceledException", "disabled")
         systemProperty("idea.debug.mode", "true")
@@ -357,7 +379,7 @@ tasks.buildSearchableOptions {
         "--add-opens=java.desktop/javax.swing=ALL-UNNAMED",
         "--add-opens=java.desktop/sun.awt=ALL-UNNAMED",
         "--add-opens=java.desktop/sun.font=ALL-UNNAMED",
-        "--add-opens=java.desktop/sun.swing=ALL-UNNAMED"
+        "--add-opens=java.desktop/sun.swing=ALL-UNNAMED",
     )
 
     if (OperatingSystem.current().isMacOsX) {

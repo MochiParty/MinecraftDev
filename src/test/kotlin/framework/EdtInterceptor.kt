@@ -3,15 +3,14 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
 
 package com.demonwav.mcdev.framework
 
-import com.intellij.openapi.util.Ref
-import com.intellij.testFramework.runInEdtAndWait
+import com.demonwav.mcdev.util.invokeEdt
 import java.lang.reflect.Method
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.InvocationInterceptor
@@ -21,7 +20,7 @@ class EdtInterceptor : InvocationInterceptor {
     override fun interceptBeforeEachMethod(
         invocation: InvocationInterceptor.Invocation<Void>,
         invocationContext: ReflectiveInvocationContext<Method>,
-        extensionContext: ExtensionContext
+        extensionContext: ExtensionContext,
     ) {
         exec(invocation, invocationContext)
     }
@@ -29,7 +28,7 @@ class EdtInterceptor : InvocationInterceptor {
     override fun interceptAfterEachMethod(
         invocation: InvocationInterceptor.Invocation<Void>,
         invocationContext: ReflectiveInvocationContext<Method>,
-        extensionContext: ExtensionContext
+        extensionContext: ExtensionContext,
     ) {
         exec(invocation, invocationContext)
     }
@@ -37,29 +36,25 @@ class EdtInterceptor : InvocationInterceptor {
     override fun interceptTestMethod(
         invocation: InvocationInterceptor.Invocation<Void>,
         invocationContext: ReflectiveInvocationContext<Method>,
-        extensionContext: ExtensionContext
+        extensionContext: ExtensionContext,
     ) {
         exec(invocation, invocationContext)
     }
 
     private fun exec(
         invocation: InvocationInterceptor.Invocation<Void>,
-        invocationContext: ReflectiveInvocationContext<Method>
+        invocationContext: ReflectiveInvocationContext<Method>,
     ) {
         if (invocationContext.executable.getAnnotation(NoEdt::class.java) != null) {
             invocation.proceed()
             return
         }
 
-        val ref = Ref<Throwable>()
-        runInEdtAndWait {
-            try {
+        val thrown = invokeEdt {
+            runCatching {
                 invocation.proceed()
-            } catch (t: Throwable) {
-                ref.set(t)
-            }
+            }.exceptionOrNull()
         }
-        val thrown = ref.get()
         if (thrown != null) {
             throw thrown
         }

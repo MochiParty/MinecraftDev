@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -34,7 +34,7 @@ class NbttBlock(
     private val node: ASTNode,
     private val settings: CodeStyleSettings,
     private val indent: Indent,
-    private val wrap: Wrap?
+    private val wrap: Wrap?,
 ) : ASTBlock {
 
     private val psiElement = node.psi

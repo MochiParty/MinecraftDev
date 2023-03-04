@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -24,7 +24,7 @@ class MixinSoftImplementMethodSuperSearcher :
 
     override fun execute(
         queryParameters: SuperMethodsSearch.SearchParameters,
-        consumer: Processor<in MethodSignatureBackedByPsiMethod>
+        consumer: Processor<in MethodSignatureBackedByPsiMethod>,
     ): Boolean {
         if (queryParameters.psiClass != null) {
             return true // Not entirely sure what this is used for

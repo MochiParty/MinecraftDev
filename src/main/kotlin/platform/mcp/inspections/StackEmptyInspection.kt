@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -52,7 +52,7 @@ class StackEmptyInspection : BaseInspection() {
             "When a stack in an inventory is shrunk, the instance is not replaced with ItemStack.EMPTY, but" +
             " the stack should still be considered empty. Instead, isEmpty() should be called."
 
-    override fun buildFix(vararg infos: Any): InspectionGadgetsFix? {
+    override fun buildFix(vararg infos: Any): InspectionGadgetsFix {
         return object : InspectionGadgetsFix() {
             override fun getFamilyName() = "Replace with .isEmpty()"
 

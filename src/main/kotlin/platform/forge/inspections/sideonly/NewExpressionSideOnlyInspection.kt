@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -27,18 +27,21 @@ class NewExpressionSideOnlyInspection : BaseInspection() {
     override fun buildErrorString(vararg infos: Any) =
         "A class annotated with @SideOnly can only be used in other matching annotated classes and methods"
 
-    override fun getStaticDescription(): String? {
+    override fun getStaticDescription(): String {
         return "A class that is annotated as @SideOnly(Side.CLIENT) or @SideOnly(Side.SERVER) cannot be " +
             "used in classes or methods which are annotated differently, or not at all. Since the " +
             "irrelevant code is removed when operating as a server or a client, common code cannot " +
             "use @SideOnly annotated classes either."
     }
 
-    override fun buildFix(vararg infos: Any): InspectionGadgetsFix? {
-        val annotation = infos[0] as PsiAnnotation
+    override fun buildFix(vararg infos: Any?): InspectionGadgetsFix? {
+        val annotation = infos[0] as? PsiAnnotation ?: return null
 
         return if (annotation.isWritable) {
-            RemoveAnnotationInspectionGadgetsFix(annotation, "Remove @SideOnly annotation from class declaration")
+            RemoveAnnotationInspectionGadgetsFix(
+                annotation.qualifiedName ?: return null,
+                "Remove @SideOnly annotation from class declaration"
+            )
         } else {
             null
         }
@@ -67,6 +70,7 @@ class NewExpressionSideOnlyInspection : BaseInspection() {
                     }
                 }
 
+                @Suppress("KotlinConstantConditions") // kotlin is wrong
                 if (classAnnotation == null || classSide == Side.NONE || offender == null) {
                     return
                 }
@@ -80,8 +84,7 @@ class NewExpressionSideOnlyInspection : BaseInspection() {
 
                 var classAnnotated = false
 
-                if (containingClassSide !== Side.NONE && containingClassSide !== Side.INVALID
-                ) {
+                if (containingClassSide !== Side.NONE && containingClassSide !== Side.INVALID) {
                     if (containingClassSide !== classSide) {
                         registerError(expression, offender.getAnnotation(classAnnotation.annotationName))
                     }

@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -27,7 +27,7 @@ object MixinConfigFileType : LanguageFileType(JsonLanguage.INSTANCE), FileTypeId
     override fun isMyFileType(file: VirtualFile) = file.name.contains(filenameRegex)
 
     override fun getName() = "Mixin Configuration"
-    override fun getDescription() = "Mixin Configuration"
+    override fun getDescription() = "Mixin configuration"
     override fun getDefaultExtension() = ""
     override fun getIcon() = PlatformAssets.MIXIN_ICON
 }

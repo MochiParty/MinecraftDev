@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -24,7 +24,7 @@ class InterfaceIsInterfaceInspection : MixinAnnotationAttributeInspection(INTERF
     override fun visitAnnotationAttribute(
         annotation: PsiAnnotation,
         value: PsiAnnotationMemberValue,
-        holder: ProblemsHolder
+        holder: ProblemsHolder,
     ) {
         val psiClass = value.resolveClass() ?: return
         if (!psiClass.isInterface) {

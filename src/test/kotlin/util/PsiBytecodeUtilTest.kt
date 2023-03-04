@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -44,6 +44,6 @@ class PsiBytecodeUtilTest : OuterClassTest() {
     fun innerAnonymousInnerInternalNameTest() =
         Assertions.assertEquals(
             "com/example/test/OuterClass\$InnerClass$1\$AnonymousInnerClass",
-            innerAnonymousInnerClass.internalName
+            innerAnonymousInnerClass.internalName,
         )
 }

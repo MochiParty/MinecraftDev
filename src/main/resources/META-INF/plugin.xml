@@ -3,7 +3,7 @@
 
     https://minecraftdev.org
 
-    Copyright (c) 2021 minecraft-dev
+    Copyright (c) 2023 minecraft-dev
 
     MIT License
 -->
@@ -13,7 +13,9 @@
     <depends>com.intellij.modules.java</depends>
     <depends>org.jetbrains.idea.maven</depends>
     <depends>com.intellij.gradle</depends>
+    <depends optional="true" config-file="mcdev-kotlin.xml">org.jetbrains.kotlin</depends>
     <depends>org.intellij.groovy</depends>
+    <depends>com.intellij.properties</depends>
     <depends>ByteCodeViewer</depends>
     <depends optional="true" config-file="toml-support.xml">org.toml.lang</depends>
 
@@ -22,8 +24,7 @@
     <vendor email="demonwav@gmail.com" url="https://minecraftdev.org/">minecraft-dev</vendor>
 
     <description><![CDATA[
-      Brings support for Bukkit, Spigot, Paper, Sponge, Forge, Fabric, MCP, Mixin, Velocity, BungeeCord, Waterfall, and
-      LiteLoader projects to Intellij IDEA.
+      Brings support for Bukkit, Spigot, Paper, Sponge, Forge, Fabric, Architectury, MCP, Mixin, Velocity, BungeeCord and Waterfall projects to Intellij IDEA.
     ]]></description>
 
     <resource-bundle>messages.MinecraftDevelopment</resource-bundle>
@@ -34,6 +35,20 @@
     </change-notes>
 
     <extensionPoints>
+        <extensionPoint name="platformTypeWizard" interface="com.demonwav.mcdev.creator.platformtype.PlatformTypeStep$Factory" dynamic="true" />
+        <extensionPoint name="modPlatformWizard" interface="com.demonwav.mcdev.creator.platformtype.ModPlatformStep$Factory" dynamic="true" />
+        <extensionPoint name="pluginPlatformWizard" interface="com.demonwav.mcdev.creator.platformtype.PluginPlatformStep$Factory" dynamic="true" />
+        <extensionPoint name="bukkitPlatformWizard" interface="com.demonwav.mcdev.platform.bukkit.creator.BukkitPlatformStep$Factory" dynamic="true" />
+        <extensionPoint name="bungeePlatformWizard" interface="com.demonwav.mcdev.platform.bungeecord.creator.BungeePlatformStep$Factory" dynamic="true" />
+        <extensionPoint name="projectSetupFinalizer" interface="com.demonwav.mcdev.creator.ProjectSetupFinalizer$Factory" dynamic="true" />
+
+        <extensionPoint name="buildSystemWizard" interface="com.demonwav.mcdev.creator.buildsystem.AbstractBuildSystemStep$Factory" dynamic="true" />
+        <extensionPoint name="buildSystemSupport" beanClass="com.demonwav.mcdev.creator.buildsystem.BuildSystemSupportEntry" dynamic="true">
+            <with attribute="implementation" implements="com.demonwav.mcdev.creator.buildsystem.BuildSystemSupport"/>
+        </extensionPoint>
+
+        <extensionPoint name="gradleFileType" interface="com.demonwav.mcdev.creator.buildsystem.GradleFile$Type" dynamic="true" />
+
         <extensionPoint name="mixinSelectorParser" interface="com.demonwav.mcdev.platform.mixin.reference.MixinSelectorParser" dynamic="true" />
         <extensionPoint name="mixinAnnotationHandler" beanClass="com.demonwav.mcdev.platform.mixin.handlers.MixinAnnotationHandlerInfo" dynamic="true">
             <with attribute="implementation" implements="com.demonwav.mcdev.platform.mixin.handlers.MixinAnnotationHandler"/>
@@ -44,6 +59,43 @@
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.demonwav.minecraft-dev">
+        <platformTypeWizard implementation="com.demonwav.mcdev.creator.platformtype.ModPlatformStep$TypeFactory" />
+        <platformTypeWizard implementation="com.demonwav.mcdev.creator.platformtype.PluginPlatformStep$TypeFactory" />
+
+        <modPlatformWizard implementation="com.demonwav.mcdev.platform.forge.creator.ForgePlatformStep$Factory" />
+        <modPlatformWizard implementation="com.demonwav.mcdev.platform.fabric.creator.FabricPlatformStep$Factory" />
+        <modPlatformWizard implementation="com.demonwav.mcdev.platform.architectury.creator.ArchitecturyPlatformStep$Factory" />
+
+        <pluginPlatformWizard implementation="com.demonwav.mcdev.platform.sponge.creator.SpongePlatformStep$Factory" />
+        <pluginPlatformWizard implementation="com.demonwav.mcdev.platform.bukkit.creator.BukkitPlatformStep$PlatformFactory" />
+        <pluginPlatformWizard implementation="com.demonwav.mcdev.platform.velocity.creator.VelocityPlatformStep$Factory" />
+        <pluginPlatformWizard implementation="com.demonwav.mcdev.platform.bungeecord.creator.BungeePlatformStep$PlatformFactory" />
+
+        <bukkitPlatformWizard implementation="com.demonwav.mcdev.platform.bukkit.creator.PaperPlatformStep$Factory" />
+        <bukkitPlatformWizard implementation="com.demonwav.mcdev.platform.bukkit.creator.SpigotPlatformStep$Factory" />
+
+        <bungeePlatformWizard implementation="com.demonwav.mcdev.platform.bungeecord.creator.WaterfallPlatformStep$Factory" />
+        <bungeePlatformWizard implementation="com.demonwav.mcdev.platform.bungeecord.creator.BungeeMainPlatformStep$Factory" />
+
+        <projectSetupFinalizer implementation="com.demonwav.mcdev.creator.JdkProjectSetupFinalizer$Factory" />
+
+        <buildSystemWizard implementation="com.demonwav.mcdev.creator.buildsystem.GradleBuildSystem" />
+        <buildSystemWizard implementation="com.demonwav.mcdev.creator.buildsystem.MavenBuildSystem" />
+
+        <buildSystemSupport platform="Forge" buildSystem="Gradle" implementation="com.demonwav.mcdev.platform.forge.creator.ForgeGradleSupport" />
+        <buildSystemSupport platform="Fabric" buildSystem="Gradle" implementation="com.demonwav.mcdev.platform.fabric.creator.FabricGradleSupport" />
+        <buildSystemSupport platform="Architectury" buildSystem="Gradle" implementation="com.demonwav.mcdev.platform.architectury.creator.ArchitecturyGradleSupport" />
+        <buildSystemSupport platform="Sponge" buildSystem="Gradle" implementation="com.demonwav.mcdev.platform.sponge.creator.SpongeGradleSupport" />
+        <buildSystemSupport platform="Sponge" buildSystem="Maven" implementation="com.demonwav.mcdev.platform.sponge.creator.SpongeMavenSupport" />
+        <buildSystemSupport platform="Bukkit" buildSystem="Gradle" implementation="com.demonwav.mcdev.platform.bukkit.creator.BukkitGradleSupport" />
+        <buildSystemSupport platform="Bukkit" buildSystem="Maven" implementation="com.demonwav.mcdev.platform.bukkit.creator.BukkitMavenSupport" />
+        <buildSystemSupport platform="Velocity" buildSystem="Gradle" implementation="com.demonwav.mcdev.platform.velocity.creator.VelocityGradleSupport" />
+        <buildSystemSupport platform="Velocity" buildSystem="Maven" implementation="com.demonwav.mcdev.platform.velocity.creator.VelocityMavenSupport" />
+        <buildSystemSupport platform="BungeeCord" buildSystem="Gradle" implementation="com.demonwav.mcdev.platform.bungeecord.creator.BungeeGradleSupport" />
+        <buildSystemSupport platform="BungeeCord" buildSystem="Maven" implementation="com.demonwav.mcdev.platform.bungeecord.creator.BungeeMavenSupport" />
+
+        <gradleFileType implementation="com.demonwav.mcdev.creator.buildsystem.GroovyGradleFile$Type" />
+
         <mixinSelectorParser id="regex" implementation="com.demonwav.mcdev.platform.mixin.reference.MixinRegexParser" order="before memberReference" />
         <mixinSelectorParser id="memberReference" implementation="com.demonwav.mcdev.platform.mixin.reference.MixinMemberParser" />
         <mixinSelectorParser implementation="com.demonwav.mcdev.platform.mixin.handlers.injectionPoint.NewInsnSelectorParser" order="before memberReference" />
@@ -82,7 +134,6 @@
                * Sponge
                * Forge
                * Fabric
-               * LiteLoader
                * MCP
                * Mixin
                * Velocity
@@ -132,6 +183,7 @@
         <fileEditorProvider implementation="com.demonwav.mcdev.nbt.editor.NbtFileEditorProvider" />
 
         <notificationGroup id="NBT Save Error" displayType="STICKY_BALLOON"/>
+        <notificationGroup id="NBT Save Success" displayType="STICKY_BALLOON"/>
 
         <!-- Text representation of NBT -->
         <fileType name="NBTT" language="NBTT" implementationClass="com.demonwav.mcdev.nbt.lang.NbttFileType" fieldName="INSTANCE" extensions="nbtt" />
@@ -268,14 +320,6 @@
         <library.presentationProvider implementation="com.demonwav.mcdev.platform.architectury.framework.ArchitecturyPresentationProvider" />
         <!--endregion-->
 
-        <!--region LITELOADER -->
-        <!---->
-
-        <fileIconProvider implementation="com.demonwav.mcdev.platform.liteloader.LiteLoaderFileIconProvider"/>
-
-        <library.presentationProvider implementation="com.demonwav.mcdev.platform.liteloader.framework.LiteLoaderPresentationProvider" />
-        <!--endregion-->
-
         <!--region MCP-->
         <!---->
 
@@ -307,9 +351,9 @@
         <lang.syntaxHighlighterFactory language="Access Widener" implementationClass="com.demonwav.mcdev.platform.mcp.aw.AwSyntaxHighlighterFactory"/>
         <colorSettingsPage implementation="com.demonwav.mcdev.platform.mcp.aw.AwColorSettingsPage" />
         <lang.commenter language="Access Widener" implementationClass="com.demonwav.mcdev.platform.mcp.aw.AwCommenter" />
-        <typedHandler implementation="com.demonwav.mcdev.platform.mcp.aw.AwTypedHandlerDelegate" />
         <annotator language="Access Widener" implementationClass="com.demonwav.mcdev.platform.mcp.aw.AwAnnotator"/>
         <completion.contributor language="Access Widener" implementationClass="com.demonwav.mcdev.platform.mcp.aw.AwCompletionContributor"/>
+        <codeInsight.unresolvedReferenceQuickFixProvider implementation="com.demonwav.mcdev.platform.mcp.aw.fixes.CopyAwAccessibleEntryFix$Provider"/>
 
         <moduleService serviceImplementation="com.demonwav.mcdev.platform.mcp.McpModuleSettings"/>
 
@@ -350,6 +394,7 @@
         <gotoDeclarationHandler implementation="com.demonwav.mcdev.platform.mixin.reference.target.TargetGTDHandler" order="first"/>
         <completion.confidence language="JAVA" implementationClass="com.demonwav.mcdev.platform.mixin.completion.MixinCompletionConfidence"
                                order="before javaSkipAutopopupInStrings"/>
+        <weigher key="completion" implementationClass="com.demonwav.mcdev.platform.mixin.completion.MixinCompletionWeigher" id="mcdev.mixin" order="first"/>
 
         <!-- Mixin configuration -->
         <fileType name="Mixin Configuration" language="JSON" implementationClass="com.demonwav.mcdev.platform.mixin.config.MixinConfigFileType" fieldName="INSTANCE" />
@@ -574,6 +619,13 @@
                          level="WARNING"
                          hasStaticDescription="true"
                          implementationClass="com.demonwav.mcdev.platform.mcp.inspections.StackEmptyInspection"/>
+        <localInspection displayName="Duplicate access widener"
+                         groupName="MCP"
+                         language="Access Widener"
+                         enabledByDefault="true"
+                         level="WARNING"
+                         hasStaticDescription="true"
+                         implementationClass="com.demonwav.mcdev.platform.mcp.aw.inspections.DuplicateAwEntryInspection"/>
         <!--endregion-->
 
         <!--region MIXIN INSPECTIONS-->
@@ -956,6 +1008,11 @@
                 description="Go to the relevant Access Transformer entry, if it exists">
             <add-to-group group-id="EditorPopupMenu.GoTo"/>
         </action>
+        <action class="com.demonwav.mcdev.platform.mcp.actions.CopyCoremodTargetAction" id="CopyCoremodTargetAction"
+                text="Coremod Target Reference"
+                description="Copy the reference to the element for use in a javascript coremod">
+            <add-to-group relative-to-action="CopyReference" anchor="after" group-id="Copy.Paste.Special"/>
+        </action>
         <action class="com.demonwav.mcdev.platform.mcp.actions.LookupMemberAction" id="LookupMcpMember"
                 text="Lookup MCP Member"
                 description="Lookup MCP mapping info on a SRG field or method">
@@ -974,6 +1031,11 @@
         <action class="com.demonwav.mcdev.insight.generation.MinecraftClassCreateAction" id="CreateMinecraftClass"
                 text="Minecraft Class" description="Create skeleton classes used in Minecraft Mods">
             <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile" />
+        </action>
+        <action class="com.demonwav.mcdev.platform.mcp.actions.CopyAwAction" id="CopyAWAction"
+                text="AW Entry"
+                description="Copy the reference to clipboard in Access Widener format">
+            <add-to-group relative-to-action="CopyATAction" anchor="after" group-id="Copy.Paste.Special"/>
         </action>
     </actions>
 </idea-plugin>

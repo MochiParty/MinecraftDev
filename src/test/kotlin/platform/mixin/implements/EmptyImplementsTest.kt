@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -36,7 +36,7 @@ class EmptyImplementsTest : BaseMixinTest() {
 
                     }
                     """,
-                    configure = false
+                    configure = false,
                 )
             }
         }
@@ -69,7 +69,7 @@ class EmptyImplementsTest : BaseMixinTest() {
             class EmptyImplementsMixin {
 
             }
-            """
+            """,
         )
     }
 
@@ -89,7 +89,7 @@ class EmptyImplementsTest : BaseMixinTest() {
             class EmptyImplementsMixin {
 
             }
-            """
+            """,
         )
     }
 
@@ -112,7 +112,7 @@ class EmptyImplementsTest : BaseMixinTest() {
             class EmptyImplementsMixin {
 
             }
-            """
+            """,
         )
     }
 }

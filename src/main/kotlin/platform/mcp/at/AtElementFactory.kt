@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -116,7 +116,8 @@ object AtElementFactory {
         PUBLIC_PLUS_F("public+f"),
         DEFAULT("default"),
         DEFAULT_MINUS_F("default-f"),
-        DEFAULT_PLUS_F("default+f");
+        DEFAULT_PLUS_F("default+f"),
+        ;
 
         companion object {
             fun match(s: String) = values().firstOrNull { it.text == s }

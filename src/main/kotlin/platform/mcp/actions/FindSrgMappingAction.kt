@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -32,7 +32,7 @@ class FindSrgMappingAction : SrgActionBase() {
             }
             is PsiClass -> {
                 val classMcpToSrg = srgMap.getSrgClass(parent) ?: return showBalloon("No SRG name found", e)
-                showSuccessBalloon(data.editor, data.element, "SRG name: " + classMcpToSrg)
+                showSuccessBalloon(data.editor, data.element, "SRG name: $classMcpToSrg")
             }
             else -> showBalloon("Not a valid element", e)
         }

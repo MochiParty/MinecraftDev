@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -42,7 +42,7 @@ class MissingFormatInspection : TranslationInspection() {
                     expression,
                     "There are missing formatting arguments to satisfy '${result.text}'",
                     ProblemHighlightType.GENERIC_ERROR,
-                    *quickFixes
+                    *quickFixes,
                 )
             }
         }

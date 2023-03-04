@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -21,7 +21,7 @@ import org.objectweb.asm.signature.SignatureVisitor
 class SignatureToPsi(
     private val elementFactory: PsiElementFactory,
     private val context: PsiElement?,
-    private val typeCompletedCallback: ((PsiType) -> Unit)? = null
+    private val typeCompletedCallback: ((PsiType) -> Unit)? = null,
 ) : SignatureVisitor(Opcodes.ASM7) {
     private val text = StringBuilder()
 

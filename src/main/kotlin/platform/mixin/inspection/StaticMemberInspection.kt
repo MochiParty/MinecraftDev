@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -47,7 +47,7 @@ class StaticMemberInspection : MixinInspection() {
                 holder.registerProblem(
                     member,
                     "Public static members are not allowed in Mixin classes",
-                    QuickFixFactory.getInstance().createModifierListFix(member, PsiModifier.PRIVATE, true, false)
+                    QuickFixFactory.getInstance().createModifierListFix(member, PsiModifier.PRIVATE, true, false),
                 )
             }
         }

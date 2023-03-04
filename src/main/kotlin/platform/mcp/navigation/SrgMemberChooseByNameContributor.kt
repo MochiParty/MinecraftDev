@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -54,7 +54,7 @@ class SrgMemberChooseByNameContributor : ChooseByNameContributor {
         name: String,
         pattern: String,
         project: Project,
-        includeNonProjectItems: Boolean
+        includeNonProjectItems: Boolean,
     ): Array<NavigationItem> {
         if (!includeNonProjectItems || srgMap == null || module == null) {
             return emptyArray()

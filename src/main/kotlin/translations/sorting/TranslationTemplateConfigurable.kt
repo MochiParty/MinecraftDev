@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -69,7 +69,7 @@ class TranslationTemplateConfigurable(private val project: Project) : Configurab
         val editorColorsScheme = EditorColorsManager.getInstance().globalScheme
         val highlighter = LexerEditorHighlighter(
             LangSyntaxHighlighter(TranslationTemplateLexerAdapter()),
-            editorColorsScheme
+            editorColorsScheme,
         )
         (templateEditor as EditorEx).highlighter = highlighter
         templateEditor.settings.isLineNumbersShown = true

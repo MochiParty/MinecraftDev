@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -23,7 +23,7 @@ class McpSrgMap(
     val classMap: ImmutableBiMap<String, String>,
     val fieldMap: ImmutableBiMap<MemberReference, MemberReference>,
     val methodMap: ImmutableBiMap<MemberReference, MemberReference>,
-    private val srgNames: HashMap<String, String>
+    private val srgNames: HashMap<String, String>,
 ) {
     fun getSrgClass(fullQualifiedName: String) = classMap[fullQualifiedName]
     fun getSrgClass(psiClass: PsiClass): String? {

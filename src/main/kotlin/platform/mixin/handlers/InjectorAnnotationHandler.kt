@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -74,12 +74,11 @@ abstract class InjectorAnnotationHandler : MixinAnnotationHandler {
     protected open fun isUnresolved(
         annotation: PsiAnnotation,
         targetClass: ClassNode,
-        targetMethod: MethodNode
+        targetMethod: MethodNode,
     ): InsnResolutionInfo.Failure? {
         return annotation.findAttributeValue("at")?.findAnnotations()
             .ifNullOrEmpty { return InsnResolutionInfo.Failure() }!!
-            .mapNotNull { AtResolver(it, targetClass, targetMethod).isUnresolved() }
-            .firstOrNull()
+            .firstNotNullOfOrNull { AtResolver(it, targetClass, targetMethod).isUnresolved() }
     }
 
     override fun resolveForNavigation(annotation: PsiAnnotation, targetClass: ClassNode): List<PsiElement> {
@@ -92,7 +91,7 @@ abstract class InjectorAnnotationHandler : MixinAnnotationHandler {
     protected open fun resolveForNavigation(
         annotation: PsiAnnotation,
         targetClass: ClassNode,
-        targetMethod: MethodNode
+        targetMethod: MethodNode,
     ): List<PsiElement> {
         return annotation.findAttributeValue("at")?.findAnnotations()
             .ifNullOrEmpty { return emptyList() }!!
@@ -118,7 +117,7 @@ abstract class InjectorAnnotationHandler : MixinAnnotationHandler {
         annotation: PsiAnnotation,
         targetClass: ClassNode,
         targetMethod: MethodNode,
-        mode: CollectVisitor.Mode = CollectVisitor.Mode.MATCH_ALL
+        mode: CollectVisitor.Mode = CollectVisitor.Mode.MATCH_ALL,
     ): List<CollectVisitor.Result<*>> {
         return annotation.findAttributeValue("at")?.findAnnotations()
             .ifNullOrEmpty { return emptyList() }!!
@@ -133,7 +132,7 @@ abstract class InjectorAnnotationHandler : MixinAnnotationHandler {
     abstract fun expectedMethodSignature(
         annotation: PsiAnnotation,
         targetClass: ClassNode,
-        targetMethod: MethodNode
+        targetMethod: MethodNode,
     ): List<MethodSignature>?
 
     open fun isInsnAllowed(insn: AbstractInsnNode): Boolean {
@@ -146,6 +145,8 @@ abstract class InjectorAnnotationHandler : MixinAnnotationHandler {
 
     open val allowCoerce = false
 
+    override val isEntryPoint = true
+
     data class InsnResult(val method: ClassAndMethodNode, val result: CollectVisitor.Result<*>)
 
     companion object {
@@ -153,7 +154,7 @@ abstract class InjectorAnnotationHandler : MixinAnnotationHandler {
         protected fun collectTargetMethodParameters(
             project: Project,
             clazz: ClassNode,
-            targetMethod: MethodNode
+            targetMethod: MethodNode,
         ): List<Parameter> {
             val numLocalsToDrop = if (targetMethod.hasAccess(Opcodes.ACC_STATIC)) 0 else 1
             val localVariables = targetMethod.localVariables?.sortedBy { it.index }
@@ -180,4 +181,14 @@ abstract class InjectorAnnotationHandler : MixinAnnotationHandler {
             }
         }
     }
+}
+
+object DefaultInjectorAnnotationHandler : InjectorAnnotationHandler() {
+    override fun expectedMethodSignature(
+        annotation: PsiAnnotation,
+        targetClass: ClassNode,
+        targetMethod: MethodNode,
+    ) = null
+
+    override val isSoft = true
 }

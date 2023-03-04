@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -20,7 +20,7 @@ class DescGTDHandler : GotoDeclarationHandler {
     override fun getGotoDeclarationTargets(
         sourceElement: PsiElement?,
         offset: Int,
-        editor: Editor?
+        editor: Editor?,
     ): Array<PsiElement>? {
         if (sourceElement == null) return null
         val stringLiteral = sourceElement.parentOfType<PsiLiteral>() ?: return null

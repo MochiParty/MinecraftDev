@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -82,7 +82,7 @@ class DefaultAnnotationParamInspectionSuppressor : InspectionSuppressor {
             REDIRECT,
             ACCESSOR,
             INVOKER,
-            MIXIN
+            MIXIN,
         )
         private val CONSTANT_SUPPRESSED = setOf(
             "intValue",
@@ -90,7 +90,7 @@ class DefaultAnnotationParamInspectionSuppressor : InspectionSuppressor {
             "longValue",
             "doubleValue",
             "stringValue",
-            "classValue"
+            "classValue",
         )
     }
 }

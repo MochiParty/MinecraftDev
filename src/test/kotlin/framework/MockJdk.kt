@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -55,7 +55,7 @@ class MockJdk(private val name: String, jar: VirtualFile, private val home: Virt
     override fun addRootSetChangedListener(listener: RootProvider.RootSetChangedListener) {}
     override fun addRootSetChangedListener(
         listener: RootProvider.RootSetChangedListener,
-        parentDisposable: Disposable
+        parentDisposable: Disposable,
     ) {
     }
 

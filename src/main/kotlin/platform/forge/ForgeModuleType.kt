@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -26,12 +26,12 @@ object ForgeModuleType : AbstractModuleType<ForgeModule>("", "") {
         ForgeConstants.MOD_ANNOTATION,
         ForgeConstants.EVENT_HANDLER_ANNOTATION,
         ForgeConstants.SUBSCRIBE_EVENT_ANNOTATION,
-        ForgeConstants.EVENTBUS_SUBSCRIBE_EVENT_ANNOTATION
+        ForgeConstants.EVENTBUS_SUBSCRIBE_EVENT_ANNOTATION,
     )
     private val LISTENER_ANNOTATIONS = listOf(
         ForgeConstants.EVENT_HANDLER_ANNOTATION,
         ForgeConstants.SUBSCRIBE_EVENT_ANNOTATION,
-        ForgeConstants.EVENTBUS_SUBSCRIBE_EVENT_ANNOTATION
+        ForgeConstants.EVENTBUS_SUBSCRIBE_EVENT_ANNOTATION,
     )
 
     override val platformType = PlatformType.FORGE

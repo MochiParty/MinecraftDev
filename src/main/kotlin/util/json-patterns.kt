@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -26,7 +26,7 @@ fun PsiElementPattern.Capture<out JsonValue>.isPropertyValue(property: String) =
             val parent = t.parent as? JsonProperty ?: return false
             return parent.value == t && parent.name == property
         }
-    }
+    },
 )
 
 private object PropertyKeyCondition : PatternCondition<JsonElement>("isPropertyKey") {

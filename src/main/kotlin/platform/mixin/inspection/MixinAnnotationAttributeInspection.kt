@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -19,16 +19,16 @@ import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiNameValuePair
 
 abstract class MixinAnnotationAttributeInspection(
-    private val annotation: List<String>,
-    private val attribute: String?
+    private val annotation: String?,
+    private val attribute: String?,
 ) : MixinInspection() {
 
-    constructor(annotation: String, attribute: String?) : this(listOf(annotation), attribute)
+    constructor(attribute: String?) : this(null, attribute)
 
     protected abstract fun visitAnnotationAttribute(
         annotation: PsiAnnotation,
         value: PsiAnnotationMemberValue,
-        holder: ProblemsHolder
+        holder: ProblemsHolder,
     )
 
     final override fun buildVisitor(holder: ProblemsHolder): PsiElementVisitor = Visitor(holder)
@@ -44,7 +44,8 @@ abstract class MixinAnnotationAttributeInspection(
             }
 
             val psiAnnotation = pair.annotationFromNameValuePair ?: return
-            if (psiAnnotation.qualifiedName !in annotation) {
+
+            if (annotation != null && !psiAnnotation.hasQualifiedName(annotation)) {
                 return
             }
 

@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -83,7 +83,7 @@ fun indent(sb: StringBuilder, indentLevel: Int) {
     }
 
     for (i in 0 until indentLevel) {
-        sb.append("    ")
+        sb.append("\t")
     }
 }
 

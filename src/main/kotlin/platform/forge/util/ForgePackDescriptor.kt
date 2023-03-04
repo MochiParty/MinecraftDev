@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -21,25 +21,26 @@ data class ForgePackDescriptor(val format: Int, val comment: String) {
             "A pack_format of 3 should be used starting with Minecraft 1.11." +
                 " All resources, including language files, should be lowercase (eg: en_us.lang)." +
                 " A pack_format of 2 will load your mod resources with LegacyV2Adapter," +
-                " which requires language files to have uppercase letters (eg: en_US.lang)."
+                " which requires language files to have uppercase letters (eg: en_US.lang).",
         )
         val FORMAT_4 = ForgePackDescriptor(
             4,
-            "A pack_format of 4 requires json lang files. Note: we require v4 pack meta for all mods."
+            "A pack_format of 4 requires json lang files. Note: we require v4 pack meta for all mods.",
         )
         val FORMAT_5 = ForgePackDescriptor(
             5,
             "A pack_format of 5 requires json lang files and some texture changes from 1.15." +
-                " Note: we require v5 pack meta for all mods."
+                " Note: we require v5 pack meta for all mods.",
         )
         val FORMAT_6 = ForgePackDescriptor(
             6,
             "A pack_format of 6 requires json lang files and some texture changes from 1.16.2." +
-                " Note: we require v6 pack meta for all mods."
+                " Note: we require v6 pack meta for all mods.",
         )
         val FORMAT_7 = ForgePackDescriptor(7, "")
         val FORMAT_8 = ForgePackDescriptor(8, "")
         val FORMAT_9 = ForgePackDescriptor(9, "")
+        val FORMAT_12 = ForgePackDescriptor(12, "")
 
         // See https://minecraft.gamepedia.com/Tutorials/Creating_a_resource_pack#.22pack_format.22
         fun forMcVersion(version: SemanticVersion): ForgePackDescriptor? = when {
@@ -49,7 +50,8 @@ data class ForgePackDescriptor(val format: Int, val comment: String) {
             version < MinecraftVersions.MC1_17 -> FORMAT_6
             version < MinecraftVersions.MC1_18 -> FORMAT_7
             version < MinecraftVersions.MC1_19 -> FORMAT_8
-            version >= MinecraftVersions.MC1_19 -> FORMAT_9
+            version < MinecraftVersions.MC1_19_3 -> FORMAT_9
+            version >= MinecraftVersions.MC1_19_3 -> FORMAT_12
             else -> null
         }
     }

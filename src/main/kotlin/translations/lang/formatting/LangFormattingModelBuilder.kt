@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -30,9 +30,9 @@ class LangFormattingModelBuilder : FormattingModelBuilder {
                 formattingContext.node,
                 Wrap.createWrap(WrapType.NONE, false),
                 Alignment.createAlignment(),
-                createSpaceBuilder(formattingContext.codeStyleSettings)
+                createSpaceBuilder(formattingContext.codeStyleSettings),
             ),
-            formattingContext.codeStyleSettings
+            formattingContext.codeStyleSettings,
         )
     }
 

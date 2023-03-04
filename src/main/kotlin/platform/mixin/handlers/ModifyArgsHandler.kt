@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -30,7 +30,7 @@ class ModifyArgsHandler : InjectorAnnotationHandler() {
     override fun expectedMethodSignature(
         annotation: PsiAnnotation,
         targetClass: ClassNode,
-        targetMethod: MethodNode
+        targetMethod: MethodNode,
     ): List<MethodSignature> {
         val argsType = JavaPsiFacade.getElementFactory(annotation.project)
             .createTypeByFQClassName(ARGS, annotation.resolveScope)
@@ -41,11 +41,11 @@ class ModifyArgsHandler : InjectorAnnotationHandler() {
                     ParameterGroup(
                         collectTargetMethodParameters(annotation.project, targetClass, targetMethod),
                         required = ParameterGroup.RequiredLevel.OPTIONAL,
-                        isVarargs = true
-                    )
+                        isVarargs = true,
+                    ),
                 ),
-                PsiType.VOID
-            )
+                PsiType.VOID,
+            ),
         )
     }
 }

@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -36,6 +36,7 @@ class PluginLineMarkerProvider : LineMarkerProviderDescriptor() {
             return null
         }
 
+        @Suppress("MoveLambdaOutsideParentheses")
         return LineMarkerInfo(
             element,
             element.textRange,
@@ -43,7 +44,7 @@ class PluginLineMarkerProvider : LineMarkerProviderDescriptor() {
             FunctionUtil.nullConstant(),
             null,
             GutterIconRenderer.Alignment.RIGHT,
-            { "minecraft plugin entry point indicator" }
+            { "minecraft plugin entry point indicator" },
         )
     }
 }

@@ -3,13 +3,15 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
 
 package com.demonwav.mcdev.platform.mcp.fabricloom
 
+import com.demonwav.mcdev.platform.forge.inspections.sideonly.Side
+import com.demonwav.mcdev.platform.forge.inspections.sideonly.SideOnlyUtil
 import com.demonwav.mcdev.util.findModule
 import com.demonwav.mcdev.util.runGradleTaskWithCallback
 import com.intellij.codeInsight.AttachSourcesProvider
@@ -26,7 +28,7 @@ import org.jetbrains.plugins.gradle.util.GradleUtil
 class FabricLoomDecompileSourceProvider : AttachSourcesProvider {
     override fun getActions(
         orderEntries: List<LibraryOrderEntry>,
-        psiFile: PsiFile
+        psiFile: PsiFile,
     ): Collection<AttachSourcesProvider.AttachSourcesAction> {
         if (psiFile !is PsiJavaFile || !psiFile.packageName.startsWith("net.minecraft")) {
             return emptyList()
@@ -36,7 +38,23 @@ class FabricLoomDecompileSourceProvider : AttachSourcesProvider {
         val loomData = GradleUtil.findGradleModuleData(module)?.children
             ?.find { it.key == FabricLoomData.KEY }?.data as? FabricLoomData
             ?: return emptyList()
-        return loomData.decompileTasks.map(::DecompileAction)
+
+        val env = if (!loomData.splitMinecraftJar) {
+            "single"
+        } else if (isClientClass(psiFile)) {
+            "client"
+        } else {
+            "common"
+        }
+
+        val decompileTasks = loomData.decompileTasks[env] ?: return emptyList()
+        return decompileTasks.map(::DecompileAction)
+    }
+
+    private fun isClientClass(psiFile: PsiJavaFile): Boolean {
+        return psiFile.classes.any { psiClass ->
+            return SideOnlyUtil.getSideForClass(psiClass).second == Side.CLIENT
+        }
     }
 
     private class DecompileAction(val decompiler: FabricLoomData.Decompiler) :
@@ -64,7 +82,7 @@ class FabricLoomDecompileSourceProvider : AttachSourcesProvider {
                 project,
                 Paths.get(projectPath),
                 { settings -> settings.taskNames = listOf(decompiler.taskName) },
-                taskCallback
+                taskCallback,
             )
             return callback
         }

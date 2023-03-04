@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -76,13 +76,13 @@ class NbttColorSettingsPage : ColorSettingsPage {
             AttributesDescriptor("Long", NbttSyntaxHighlighter.LONG),
             AttributesDescriptor("Float", NbttSyntaxHighlighter.FLOAT),
             AttributesDescriptor("Double", NbttSyntaxHighlighter.DOUBLE),
-            AttributesDescriptor("Material", NbttSyntaxHighlighter.MATERIAL)
+            AttributesDescriptor("Material", NbttSyntaxHighlighter.MATERIAL),
         )
 
         private val map = mapOf(
             "name" to NbttSyntaxHighlighter.STRING_NAME,
             "uname" to NbttSyntaxHighlighter.UNQUOTED_STRING_NAME,
-            "material" to NbttSyntaxHighlighter.MATERIAL
+            "material" to NbttSyntaxHighlighter.MATERIAL,
         )
     }
 }

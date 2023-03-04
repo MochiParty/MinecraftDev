@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -16,7 +16,7 @@ import com.siyeh.ig.InspectionGadgetsFix
 
 class IsCancelled(
     fix: (ProblemDescriptor) -> Unit,
-    val errorString: String
+    val errorString: String,
 ) {
     val buildFix: InspectionGadgetsFix
 
@@ -24,7 +24,7 @@ class IsCancelled(
         this.buildFix = object : InspectionGadgetsFix() {
             override fun doFix(project: Project, descriptor: ProblemDescriptor) = fix(descriptor)
             override fun getName() = "Simplify"
-            override fun getFamilyName() = "Useless IsCancelled Check"
+            override fun getFamilyName() = "Useless isCancelled check"
         }
     }
 }

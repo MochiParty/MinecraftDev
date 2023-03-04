@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -30,7 +30,7 @@ class RemoveDuplicatesIntention(private val translation: Translation) : PsiEleme
         val keep = TranslationFiles.seekTranslation(element) ?: return
         val entries = TranslationInverseIndex.findElements(
             translation.key,
-            GlobalSearchScope.fileScope(element.containingFile)
+            GlobalSearchScope.fileScope(element.containingFile),
         )
         for (other in entries) {
             if (other !== keep) {

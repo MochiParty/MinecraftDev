@@ -3,17 +3,21 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
 
 package com.demonwav.mcdev.platform.forge.version
 
+import com.demonwav.mcdev.creator.selectProxy
+import com.demonwav.mcdev.update.PluginUtil
 import com.demonwav.mcdev.util.SemanticVersion
 import com.demonwav.mcdev.util.sortVersions
+import com.github.kittinunf.fuel.core.FuelManager
+import com.github.kittinunf.fuel.core.requests.suspendable
+import com.intellij.openapi.diagnostic.logger
 import java.io.IOException
-import java.net.URL
 import javax.xml.stream.XMLInputFactory
 import javax.xml.stream.events.XMLEvent
 
@@ -28,7 +32,7 @@ class ForgeVersion private constructor(val versions: List<String>) {
                         return null
                     }
                     return version.substring(0, index)
-                }
+                },
             ).distinct()
             .toList()
         return@lazy sortVersions(unsortedVersions)
@@ -51,11 +55,21 @@ class ForgeVersion private constructor(val versions: List<String>) {
     }
 
     companion object {
-        fun downloadData(): ForgeVersion? {
+        private val LOGGER = logger<ForgeVersion>()
+
+        suspend fun downloadData(): ForgeVersion? {
             try {
-                val url = URL("https://files.minecraftforge.net/maven/net/minecraftforge/forge/maven-metadata.xml")
+                val url = "https://files.minecraftforge.net/maven/net/minecraftforge/forge/maven-metadata.xml"
+                val manager = FuelManager()
+                manager.proxy = selectProxy(url)
+
+                val response = manager.get(url)
+                    .header("User-Agent", PluginUtil.useragent)
+                    .suspendable()
+                    .await()
+
                 val result = mutableListOf<String>()
-                url.openStream().use { stream ->
+                response.body().toStream().use { stream ->
                     val inputFactory = XMLInputFactory.newInstance()
 
                     @Suppress("UNCHECKED_CAST")
@@ -86,7 +100,7 @@ class ForgeVersion private constructor(val versions: List<String>) {
 
                 return ForgeVersion(result)
             } catch (e: IOException) {
-                e.printStackTrace()
+                LOGGER.error("Failed to retrieve Forge version data", e)
             }
             return null
         }

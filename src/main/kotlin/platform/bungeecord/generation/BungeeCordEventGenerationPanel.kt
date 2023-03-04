@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -20,7 +20,7 @@ class BungeeCordEventGenerationPanel(chosenClass: PsiClass) : EventGenerationPan
     private lateinit var eventPriorityComboBox: JComboBox<String>
     private lateinit var parentPanel: JPanel
 
-    override val panel: JPanel?
+    override val panel: JPanel
         get() {
             // Not static because the form builder is not reliable
             eventPriorityComboBox.addItem("HIGHEST")

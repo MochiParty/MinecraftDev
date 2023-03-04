@@ -3,16 +3,15 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
 
 package com.demonwav.mcdev.platform.mixin
 
-import com.demonwav.mcdev.platform.mixin.util.MixinConstants
+import com.demonwav.mcdev.platform.mixin.util.isMixinEntryPoint
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiReference
 import com.intellij.psi.javadoc.CustomJavadocTagProvider
 import com.intellij.psi.javadoc.JavadocTagInfo
@@ -26,12 +25,7 @@ class MixinCustomJavaDocTagProvider : CustomJavadocTagProvider {
 
         override fun isInline() = false
 
-        override fun isValidInContext(element: PsiElement?): Boolean {
-            val modifierList = (element as? PsiMethod)?.modifierList ?: return false
-            return MixinConstants.Annotations.ENTRY_POINTS.any {
-                modifierList.findAnnotation(it) != null
-            }
-        }
+        override fun isValidInContext(element: PsiElement?) = isMixinEntryPoint(element)
 
         override fun checkTagValue(value: PsiDocTagValue?): String? = null
         override fun getReference(value: PsiDocTagValue?): PsiReference? = null

@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -28,7 +28,7 @@ class McpDataService : AbstractProjectDataService<McpModelData, Module>() {
         toImport: Collection<DataNode<McpModelData>>,
         projectData: ProjectData?,
         project: Project,
-        modelsProvider: IdeModifiableModelsProvider
+        modelsProvider: IdeModifiableModelsProvider,
     ) {
         if (projectData == null || toImport.isEmpty()) {
             return

@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -59,12 +59,12 @@ class ModifyConstantHandler : InjectorAnnotationHandler() {
         Opcodes.IFLT,
         Opcodes.IFGE,
         Opcodes.IFGT,
-        Opcodes.IFLE
+        Opcodes.IFLE,
     )
 
     private class ModifyConstantInfo(
         val constantInfo: ConstantInjectionPoint.ConstantInfo,
-        val constantAnnotation: PsiAnnotation
+        val constantAnnotation: PsiAnnotation,
     )
 
     private fun getConstantInfos(modifyConstant: PsiAnnotation): List<ModifyConstantInfo>? {
@@ -81,7 +81,7 @@ class ModifyConstantHandler : InjectorAnnotationHandler() {
             val stringValue = constant.findDeclaredAttributeValue("stringValue")?.constantValue as? String
             val classValue = constant.findDeclaredAttributeValue("classValue")?.resolveClass()?.descriptor?.let {
                 Type.getType(
-                    it
+                    it,
                 )
             }
 
@@ -129,7 +129,7 @@ class ModifyConstantHandler : InjectorAnnotationHandler() {
     override fun expectedMethodSignature(
         annotation: PsiAnnotation,
         targetClass: ClassNode,
-        targetMethod: MethodNode
+        targetMethod: MethodNode,
     ): List<MethodSignature>? {
         val constantInfos = getConstantInfos(annotation) ?: return null
         val psiManager = PsiManager.getInstance(annotation.project)
@@ -151,10 +151,10 @@ class ModifyConstantHandler : InjectorAnnotationHandler() {
                     ParameterGroup(
                         collectTargetMethodParameters(annotation.project, targetClass, targetMethod),
                         isVarargs = true,
-                        required = ParameterGroup.RequiredLevel.OPTIONAL
-                    )
+                        required = ParameterGroup.RequiredLevel.OPTIONAL,
+                    ),
                 ),
-                type
+                type,
             )
         }.toList()
     }
@@ -162,7 +162,7 @@ class ModifyConstantHandler : InjectorAnnotationHandler() {
     override fun resolveForNavigation(
         annotation: PsiAnnotation,
         targetClass: ClassNode,
-        targetMethod: MethodNode
+        targetMethod: MethodNode,
     ): List<PsiElement> {
         val constantInfos = getConstantInfos(annotation) ?: return emptyList()
 
@@ -170,16 +170,23 @@ class ModifyConstantHandler : InjectorAnnotationHandler() {
             targetClass,
             annotation.project,
             GlobalSearchScope.allScope(annotation.project),
-            canDecompile = true
+            canDecompile = true,
         ) ?: return emptyList()
+
+        val constantInjectionPoint = InjectionPoint.byAtCode("CONSTANT") as? ConstantInjectionPoint
+            ?: return emptyList()
 
         return constantInfos.asSequence().flatMap { modifyConstantInfo ->
             val collectVisitor = ConstantInjectionPoint.MyCollectVisitor(
                 annotation.project,
                 CollectVisitor.Mode.MATCH_ALL,
-                modifyConstantInfo.constantInfo
+                modifyConstantInfo.constantInfo,
             )
-            InjectionPoint.addStandardFilters(modifyConstantInfo.constantAnnotation, targetClass, collectVisitor)
+            constantInjectionPoint.addStandardFilters(
+                modifyConstantInfo.constantAnnotation,
+                targetClass,
+                collectVisitor,
+            )
             collectVisitor.visit(targetMethod)
             val bytecodeResults = collectVisitor.result
 
@@ -196,16 +203,22 @@ class ModifyConstantHandler : InjectorAnnotationHandler() {
         annotation: PsiAnnotation,
         targetClass: ClassNode,
         targetMethod: MethodNode,
-        mode: CollectVisitor.Mode
+        mode: CollectVisitor.Mode,
     ): List<CollectVisitor.Result<*>> {
         val constantInfos = getConstantInfos(annotation) ?: return emptyList()
+        val constantInjectionPoint = InjectionPoint.byAtCode("CONSTANT") as? ConstantInjectionPoint
+            ?: return emptyList()
         return constantInfos.asSequence().flatMap { modifyConstantInfo ->
             val collectVisitor = ConstantInjectionPoint.MyCollectVisitor(
                 annotation.project,
                 mode,
-                modifyConstantInfo.constantInfo
+                modifyConstantInfo.constantInfo,
             )
-            InjectionPoint.addStandardFilters(modifyConstantInfo.constantAnnotation, targetClass, collectVisitor)
+            constantInjectionPoint.addStandardFilters(
+                modifyConstantInfo.constantAnnotation,
+                targetClass,
+                collectVisitor,
+            )
             collectVisitor.visit(targetMethod)
             collectVisitor.result.asSequence()
         }.sortedBy { targetMethod.instructions.indexOf(it.insn) }.toList()
@@ -214,16 +227,22 @@ class ModifyConstantHandler : InjectorAnnotationHandler() {
     override fun isUnresolved(
         annotation: PsiAnnotation,
         targetClass: ClassNode,
-        targetMethod: MethodNode
+        targetMethod: MethodNode,
     ): InsnResolutionInfo.Failure? {
         val constantInfos = getConstantInfos(annotation) ?: return InsnResolutionInfo.Failure()
+        val constantInjectionPoint = InjectionPoint.byAtCode("CONSTANT") as? ConstantInjectionPoint
+            ?: return null
         return constantInfos.asSequence().mapNotNull { modifyConstantInfo ->
             val collectVisitor = ConstantInjectionPoint.MyCollectVisitor(
                 annotation.project,
                 CollectVisitor.Mode.MATCH_FIRST,
-                modifyConstantInfo.constantInfo
+                modifyConstantInfo.constantInfo,
             )
-            InjectionPoint.addStandardFilters(modifyConstantInfo.constantAnnotation, targetClass, collectVisitor)
+            constantInjectionPoint.addStandardFilters(
+                modifyConstantInfo.constantAnnotation,
+                targetClass,
+                collectVisitor,
+            )
             collectVisitor.visit(targetMethod)
             if (collectVisitor.result.isEmpty()) {
                 collectVisitor.filterToBlame

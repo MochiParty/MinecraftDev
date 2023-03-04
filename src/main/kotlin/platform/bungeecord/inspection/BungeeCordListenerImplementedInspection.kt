@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -32,7 +32,7 @@ class BungeeCordListenerImplementedInspection : BaseInspection() {
     override fun getStaticDescription() =
         "All BungeeCord @EventHandler methods must reside in a class that implements Listener."
 
-    override fun buildFix(vararg infos: Any): InspectionGadgetsFix? {
+    override fun buildFix(vararg infos: Any): InspectionGadgetsFix {
         return object : InspectionGadgetsFix() {
             override fun doFix(project: Project, descriptor: ProblemDescriptor) {
                 val psiClass = infos[0] as PsiClass

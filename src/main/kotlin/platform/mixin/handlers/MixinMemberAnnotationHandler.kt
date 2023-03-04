@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -37,14 +37,14 @@ interface MixinMemberAnnotationHandler : MixinAnnotationHandler {
                         it.classAndField.clazz,
                         annotation.project,
                         annotation.resolveScope,
-                        canDecompile = true
+                        canDecompile = true,
                     )
                 is MethodTargetMember ->
                     it.classAndMethod.method.findSourceElement(
                         it.classAndMethod.clazz,
                         annotation.project,
                         annotation.resolveScope,
-                        canDecompile = true
+                        canDecompile = true,
                     )
             }
         }

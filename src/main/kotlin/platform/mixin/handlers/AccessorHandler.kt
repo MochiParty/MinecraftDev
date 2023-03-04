@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -92,15 +92,18 @@ class AccessorHandler : MixinMemberAnnotationHandler {
             targetMember.classAndField.clazz,
             method.project,
             method.resolveScope,
-            canDecompile = false
+            canDecompile = false,
         ).createSmartPointer()
     }
+
+    override val isEntryPoint = false
 
     data class AccessorInfo(val name: String, val type: AccessorType)
 
     enum class AccessorType(val allowGetters: Boolean, val allowSetters: Boolean) {
         GETTER(true, false),
         SETTER(false, true),
-        UNKNOWN(true, true);
+        UNKNOWN(true, true),
+        ;
     }
 }

@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -24,26 +24,26 @@ class MixinReferenceContributor : PsiReferenceContributor() {
         // Method references
         registrar.registerReferenceProvider(
             MethodReference.ELEMENT_PATTERN,
-            MethodReference
+            MethodReference,
         )
 
         // Desc references
         registrar.registerReferenceProvider(
             DescReference.ELEMENT_PATTERN,
-            DescReference
+            DescReference,
         )
 
         // Injection point types
         registrar.registerReferenceProvider(
             PsiJavaPatterns.psiLiteral(StandardPatterns.string())
                 .insideAnnotationAttribute(AT),
-            InjectionPointReference
+            InjectionPointReference,
         )
 
         // Target references
         registrar.registerReferenceProvider(
             TargetReference.ELEMENT_PATTERN,
-            TargetReference
+            TargetReference,
         )
     }
 }

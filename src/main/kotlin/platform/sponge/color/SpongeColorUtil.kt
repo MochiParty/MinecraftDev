@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -25,6 +25,6 @@ fun PsiElement.findSpongeColor(): Pair<Color, UElement>? =
         arrayOf(
             "com.flowpowered.math.vector.Vector3d",
             "com.flowpowered.math.vector.Vector3f",
-            "com.flowpowered.math.vector.Vector3i"
-        )
+            "com.flowpowered.math.vector.Vector3i",
+        ),
     )

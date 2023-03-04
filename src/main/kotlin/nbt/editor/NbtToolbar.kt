@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -30,14 +30,8 @@ class NbtToolbar(nbtFile: NbtVirtualFile) {
             if (nbtFile.isCompressed) CompressionSelection.GZIP else CompressionSelection.UNCOMPRESSED
         lastSelection = selection
 
-        saveButton.isVisible = false
-
         if (!nbtFile.isWritable || !nbtFile.parseSuccessful) {
             compressionBox.isEnabled = false
-        } else {
-            compressionBox.addActionListener {
-                checkModified()
-            }
         }
 
         if (!nbtFile.parseSuccessful) {
@@ -46,16 +40,11 @@ class NbtToolbar(nbtFile: NbtVirtualFile) {
 
         saveButton.addActionListener {
             lastSelection = selection
-            checkModified()
 
             runWriteTaskLater {
                 nbtFile.writeFile(this)
             }
         }
-    }
-
-    private fun checkModified() {
-        saveButton.isVisible = lastSelection != selection
     }
 
     val selection

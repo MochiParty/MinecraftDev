@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -33,7 +33,7 @@ class InvalidMemberReferenceInspection : MixinInspection() {
         |Reports invalid usages of member references in Mixin annotations. Two different formats are supported by Mixin:
         | - Lcom/example/ExampleClass;execute(II)V
         | - com.example.ExampleClass.execute(II)V
-    """.trimMargin()
+        """.trimMargin()
 
     override fun buildVisitor(holder: ProblemsHolder): PsiElementVisitor = Visitor(holder)
 
@@ -50,7 +50,7 @@ class InvalidMemberReferenceInspection : MixinInspection() {
 
             // Check if valid annotation
             val qualifiedName = pair.annotationFromNameValuePair?.qualifiedName ?: return
-            if (!resolver.isValidAnnotation(qualifiedName)) {
+            if (!resolver.isValidAnnotation(qualifiedName, pair.project)) {
                 return
             }
 

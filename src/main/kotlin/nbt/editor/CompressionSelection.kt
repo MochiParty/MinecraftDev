@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -12,7 +12,8 @@ package com.demonwav.mcdev.nbt.editor
 
 enum class CompressionSelection(private val selectionName: String) {
     GZIP("GZipped"),
-    UNCOMPRESSED("Uncompressed");
+    UNCOMPRESSED("Uncompressed"),
+    ;
 
     override fun toString() = selectionName
 }

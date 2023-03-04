@@ -3,16 +3,17 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
 
 package com.demonwav.mcdev.platform.mixin.inspection.reference
 
+import com.demonwav.mcdev.platform.mixin.handlers.InjectorAnnotationHandler
+import com.demonwav.mcdev.platform.mixin.handlers.MixinAnnotationHandler
 import com.demonwav.mcdev.platform.mixin.inspection.MixinAnnotationAttributeInspection
 import com.demonwav.mcdev.platform.mixin.reference.MethodReference
-import com.demonwav.mcdev.platform.mixin.util.MixinConstants.Annotations.METHOD_INJECTORS
 import com.demonwav.mcdev.util.constantStringValue
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.ProblemDescriptor
@@ -26,15 +27,21 @@ import com.intellij.psi.PsiArrayInitializerMemberValue
 import com.intellij.psi.PsiBinaryExpression
 import com.intellij.psi.PsiLiteral
 
-class AmbiguousReferenceInspection : MixinAnnotationAttributeInspection(METHOD_INJECTORS, "method") {
+class AmbiguousReferenceInspection : MixinAnnotationAttributeInspection("method") {
 
     override fun getStaticDescription() = "Reports ambiguous references in Mixin annotations"
 
     override fun visitAnnotationAttribute(
         annotation: PsiAnnotation,
         value: PsiAnnotationMemberValue,
-        holder: ProblemsHolder
+        holder: ProblemsHolder,
     ) {
+        val qName = annotation.qualifiedName ?: return
+        val handler = MixinAnnotationHandler.forMixinAnnotation(qName, annotation.project)
+        if (handler !is InjectorAnnotationHandler || handler.isSoft) {
+            return
+        }
+
         when (value) {
             is PsiLiteral -> checkMember(value, holder)
             is PsiArrayInitializerMemberValue -> value.initializers.forEach { checkMember(it, holder) }
@@ -50,7 +57,7 @@ class AmbiguousReferenceInspection : MixinAnnotationAttributeInspection(METHOD_I
         holder.registerProblem(
             value,
             "Ambiguous reference to method '${ambiguousReference.name}' in target class",
-            QuickFix
+            QuickFix,
         )
     }
 

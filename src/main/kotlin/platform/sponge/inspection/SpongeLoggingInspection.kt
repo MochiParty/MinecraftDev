@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -59,7 +59,7 @@ class SpongeLoggingInspection : AbstractBaseJavaLocalInspectionTool() {
             holder.registerProblem(
                 element,
                 "Sponge plugins should use ${Constants.SLF4J_LOGGER} rather than ${Constants.JAVA_UTIL_LOGGER}.",
-                ProblemHighlightType.GENERIC_ERROR_OR_WARNING
+                ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
             )
         }
     }

@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -85,7 +85,7 @@ fun UIdentifier.findColor(
     className: String,
     vectorClasses: Array<String>?,
     maxDepth: Int = 10,
-    depth: Int = 0
+    depth: Int = 0,
 ): Pair<Color, UElement>? {
     if (depth >= maxDepth) {
         return null
@@ -133,7 +133,7 @@ fun UIdentifier.findColor(
 
 private fun findColorFromCallExpression(
     methodExpression: UCallExpression,
-    vectorClasses: Array<String>?
+    vectorClasses: Array<String>?,
 ): Pair<Color, UElement>? {
     val project = methodExpression.sourcePsi?.project ?: return null
 
@@ -193,7 +193,7 @@ fun UElement.setColor(color: String) {
     sourcePsi.containingFile.runWriteAction {
         val project = sourcePsi.project
         val parent = this.uastParent
-        val newColorRef = generationPlugin?.getElementFactory(project)?.createQualifiedReference(color, this)
+        val newColorRef = generationPlugin?.getElementFactory(project)?.createQualifiedReference(color, sourcePsi)
             ?: return@runWriteAction
         if (this.lang.id == "kotlin") {
             // Kotlin UAST is a bit different, annoying but I couldn't find a better way

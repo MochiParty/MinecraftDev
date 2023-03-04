@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -21,7 +21,7 @@ data class McpModelData(
     val module: ModuleData,
     val settings: McpModuleSettings.State,
     val taskName: String?,
-    val accessTransformers: List<File>?
+    val accessTransformers: List<File>?,
 ) : AbstractExternalEntityData(module.owner) {
     companion object {
         // Process McpModelData after builtin services (e.g. dependency or module data)

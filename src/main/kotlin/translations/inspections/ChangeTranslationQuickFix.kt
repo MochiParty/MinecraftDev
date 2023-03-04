@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -34,7 +34,7 @@ class ChangeTranslationQuickFix(private val name: String) : LocalQuickFix {
             val popup = ChooseByNamePopup.createPopup(
                 project,
                 TranslationGotoModel(project, key.prefix, key.suffix),
-                null
+                null,
             )
             popup.invoke(
                 object : ChooseByNamePopupComponent.Callback() {
@@ -43,19 +43,19 @@ class ChangeTranslationQuickFix(private val name: String) : LocalQuickFix {
                         literal.containingFile.runWriteAction {
                             val insertion = selectedKey.substring(
                                 key.prefix.length,
-                                selectedKey.length - key.suffix.length
+                                selectedKey.length - key.suffix.length,
                             )
                             literal.replace(
                                 JavaPsiFacade.getInstance(project).elementFactory.createExpressionFromText(
                                     "\"$insertion\"",
-                                    literal.context
-                                )
+                                    literal.context,
+                                ),
                             )
                         }
                     }
                 },
                 ModalityState.current(),
-                false
+                false,
             )
         } catch (ignored: IncorrectOperationException) {
         }

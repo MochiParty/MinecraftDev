@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -38,7 +38,7 @@ class ModifyVariableHandler : InjectorAnnotationHandler() {
     override fun expectedMethodSignature(
         annotation: PsiAnnotation,
         targetClass: ClassNode,
-        targetMethod: MethodNode
+        targetMethod: MethodNode,
     ): List<MethodSignature>? {
         val module = annotation.findModule() ?: return null
 
@@ -51,7 +51,7 @@ class ModifyVariableHandler : InjectorAnnotationHandler() {
         val targetParamsGroup = ParameterGroup(
             collectTargetMethodParameters(annotation.project, targetClass, targetMethod),
             required = ParameterGroup.RequiredLevel.OPTIONAL,
-            isVarargs = true
+            isVarargs = true,
         )
 
         val info = ModifyVariableInfo.getModifyVariableInfo(annotation, CollectVisitor.Mode.COMPLETION)
@@ -74,9 +74,9 @@ class ModifyVariableHandler : InjectorAnnotationHandler() {
             result += MethodSignature(
                 listOf(
                     ParameterGroup(listOf(sanitizedParameter(psiType, "value"))),
-                    targetParamsGroup
+                    targetParamsGroup,
                 ),
-                psiType
+                psiType,
             )
         }
 
@@ -89,13 +89,13 @@ class ModifyVariableInfo(
     val argsOnly: Boolean,
     val index: Int?,
     val ordinal: Int?,
-    val names: Set<String>
+    val names: Set<String>,
 ) {
     fun getLocals(
         module: Module,
         targetClass: ClassNode,
         methodNode: MethodNode,
-        insn: AbstractInsnNode
+        insn: AbstractInsnNode,
     ): Array<LocalVariables.LocalVariable?>? {
         return if (argsOnly) {
             val args = mutableListOf<LocalVariables.LocalVariable?>()
@@ -105,7 +105,7 @@ class ModifyVariableInfo(
             }
             for (argType in Type.getArgumentTypes(methodNode.desc)) {
                 args.add(
-                    LocalVariables.LocalVariable("arg${args.size}", argType.descriptor, null, null, null, args.size)
+                    LocalVariables.LocalVariable("arg${args.size}", argType.descriptor, null, null, null, args.size),
                 )
                 if (argType.size == 2) {
                     args.add(null)
@@ -120,7 +120,7 @@ class ModifyVariableInfo(
     fun matchLocals(
         locals: Array<LocalVariables.LocalVariable?>,
         mode: CollectVisitor.Mode,
-        matchType: Boolean = true
+        matchType: Boolean = true,
     ): List<LocalVariables.LocalVariable> {
         val typeDesc = type?.descriptor
         if (ordinal != null) {
@@ -132,7 +132,7 @@ class ModifyVariableInfo(
                 }
                 val ordinal = ordinals[local.desc] ?: 0
                 ordinals[local.desc!!] = ordinal + 1
-                if (ordinal == ordinal && (!matchType || typeDesc == null || local.desc == typeDesc)) {
+                if (ordinal == this.ordinal && (!matchType || typeDesc == null || local.desc == typeDesc)) {
                     result += local
                 }
             }

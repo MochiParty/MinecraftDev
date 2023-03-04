@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -73,8 +73,8 @@ class AtAnnotator : Annotator {
                     null,
                     AtSyntaxHighlighter.ELEMENT_NAME.defaultAttributes.foregroundColor,
                     EffectType.BOLD_LINE_UNDERSCORE,
-                    Font.PLAIN
-                )
+                    Font.PLAIN,
+                ),
             )
             .create()
     }

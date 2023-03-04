@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -42,21 +42,37 @@ sealed class TranslationFindUsagesProvider : FindUsagesProvider {
 }
 
 class JsonFindUsagesProvider : TranslationFindUsagesProvider() {
-    override fun getWordsScanner(): WordsScanner? =
+    override fun getWordsScanner(): WordsScanner =
         DefaultWordsScanner(
             JsonLexer(),
             TokenSet.create(JsonElementTypes.DOUBLE_QUOTED_STRING, JsonElementTypes.SINGLE_QUOTED_STRING),
             TokenSet.create(JsonElementTypes.BLOCK_COMMENT, JsonElementTypes.LINE_COMMENT),
-            TokenSet.EMPTY
+            TokenSet.EMPTY,
         )
+
+    override fun equals(other: Any?): Boolean {
+        return this === other
+    }
+
+    override fun hashCode(): Int {
+        return System.identityHashCode(this)
+    }
 }
 
 class LangFindUsagesProvider : TranslationFindUsagesProvider() {
-    override fun getWordsScanner(): WordsScanner? =
+    override fun getWordsScanner(): WordsScanner =
         DefaultWordsScanner(
             LangLexerAdapter(),
             TokenSet.create(LangTypes.KEY),
             TokenSet.create(LangTypes.COMMENT),
-            TokenSet.EMPTY
+            TokenSet.EMPTY,
         )
+
+    override fun equals(other: Any?): Boolean {
+        return this === other
+    }
+
+    override fun hashCode(): Int {
+        return System.identityHashCode(this)
+    }
 }

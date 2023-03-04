@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -35,7 +35,7 @@ object AnonymousFeedback {
     fun sendFeedback(
         factory: HttpConnectionFactory,
         envDetails: LinkedHashMap<String, String?>,
-        attachments: List<Attachment>
+        attachments: List<Attachment>,
     ): FeedbackData {
         val duplicateId = findDuplicateIssue(envDetails, factory)
         if (duplicateId != null) {
@@ -51,7 +51,7 @@ object AnonymousFeedback {
 
     private fun convertToGitHubIssueFormat(
         envDetails: LinkedHashMap<String, String?>,
-        attachments: List<Attachment>
+        attachments: List<Attachment>,
     ): ByteArray {
         val result = LinkedHashMap<String, String>(5)
         result["title"] = "[auto-generated] Exception in plugin"

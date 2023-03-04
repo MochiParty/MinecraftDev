@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -36,7 +36,7 @@ abstract class AbstractReturnInjectionPoint(private val tailOnly: Boolean) : Inj
     override fun createNavigationVisitor(
         at: PsiAnnotation,
         target: MixinSelector?,
-        targetClass: PsiClass
+        targetClass: PsiClass,
     ): NavigationVisitor {
         return MyNavigationVisitor(tailOnly)
     }
@@ -45,14 +45,14 @@ abstract class AbstractReturnInjectionPoint(private val tailOnly: Boolean) : Inj
         at: PsiAnnotation,
         target: MixinSelector?,
         targetClass: ClassNode,
-        mode: CollectVisitor.Mode
+        mode: CollectVisitor.Mode,
     ): CollectVisitor<PsiElement> {
         return MyCollectVisitor(at.project, mode, tailOnly)
     }
 
     override fun createLookup(
         targetClass: ClassNode,
-        result: CollectVisitor.Result<PsiElement>
+        result: CollectVisitor.Result<PsiElement>,
     ): LookupElementBuilder? {
         return null
     }
@@ -116,7 +116,7 @@ abstract class AbstractReturnInjectionPoint(private val tailOnly: Boolean) : Inj
     private class MyCollectVisitor(
         private val project: Project,
         mode: Mode,
-        private val tailOnly: Boolean
+        private val tailOnly: Boolean,
     ) : CollectVisitor<PsiElement>(mode) {
         override fun accept(methodNode: MethodNode) {
             val insns = methodNode.instructions ?: return

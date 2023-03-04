@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -29,7 +29,7 @@ class SpongeInvalidGetterTargetInspection : AbstractBaseUastLocalInspectionTool(
     override fun checkMethod(
         method: UMethod,
         manager: InspectionManager,
-        isOnTheFly: Boolean
+        isOnTheFly: Boolean,
     ): Array<ProblemDescriptor>? {
         if (!method.isValidSpongeListener()) {
             return null
@@ -45,7 +45,7 @@ class SpongeInvalidGetterTargetInspection : AbstractBaseUastLocalInspectionTool(
                         this.staticDescription,
                         isOnTheFly,
                         null,
-                        ProblemHighlightType.GENERIC_ERROR_OR_WARNING
+                        ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
                     )
                 }
             }

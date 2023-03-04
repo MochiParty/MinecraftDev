@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -22,7 +22,7 @@ data class ParameterGroup(
     val parameters: List<Parameter>,
     val required: RequiredLevel = RequiredLevel.ERROR_IF_ABSENT,
     val default: Boolean = required != RequiredLevel.OPTIONAL,
-    val isVarargs: Boolean = false
+    val isVarargs: Boolean = false,
 ) {
 
     val size

@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -23,7 +23,7 @@ data class EntryPoint(
     val type: Type,
     val className: String,
     val interfaceName: String,
-    val methodName: String? = null
+    val methodName: String? = null,
 ) {
     private val dumbReference = when (type) {
         Type.CLASS -> className

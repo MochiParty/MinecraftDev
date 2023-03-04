@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -33,7 +33,7 @@ class AtGotoDeclarationHandler : GotoDeclarationHandler {
     override fun getGotoDeclarationTargets(
         sourceElement: PsiElement?,
         offset: Int,
-        editor: Editor
+        editor: Editor,
     ): Array<out PsiElement>? {
         if (sourceElement?.language !== AtLanguage) {
             return null
@@ -88,7 +88,7 @@ class AtGotoDeclarationHandler : GotoDeclarationHandler {
 
                 val psiClass = JavaPsiFacade.getInstance(sourceElement.project).findClass(
                     boxedType,
-                    GlobalSearchScope.allScope(sourceElement.project)
+                    GlobalSearchScope.allScope(sourceElement.project),
                 ) ?: return null
                 arrayOf(psiClass)
             }

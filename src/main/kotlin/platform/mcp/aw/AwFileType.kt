@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -17,7 +17,7 @@ object AwFileType : LanguageFileType(AwLanguage) {
 
     override fun getName() = "Access Widener"
 
-    override fun getDescription() = "Access Widener File"
+    override fun getDescription() = "Access widener"
 
     override fun getDefaultExtension() = "accesswidener"
 

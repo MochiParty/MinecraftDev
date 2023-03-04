@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -17,7 +17,8 @@ enum class Side {
     CLIENT,
     SERVER,
     NONE,
-    INVALID;
+    INVALID,
+    ;
 
     companion object {
         val KEY = Key<Side>("MC_DEV_SIDE")

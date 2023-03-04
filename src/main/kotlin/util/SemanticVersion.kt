@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -13,6 +13,7 @@ package com.demonwav.mcdev.util
 import com.demonwav.mcdev.util.SemanticVersion.Companion.VersionPart.PreReleasePart
 import com.demonwav.mcdev.util.SemanticVersion.Companion.VersionPart.ReleasePart
 import com.demonwav.mcdev.util.SemanticVersion.Companion.VersionPart.TextPart
+import java.net.URLDecoder
 
 /**
  * Represents a comparable and generalised "semantic version".
@@ -21,7 +22,7 @@ import com.demonwav.mcdev.util.SemanticVersion.Companion.VersionPart.TextPart
  */
 class SemanticVersion(
     val parts: List<VersionPart>,
-    private val buildMetadata: String = ""
+    private val buildMetadata: String = "",
 ) : Comparable<SemanticVersion> {
 
     private fun createVersionString(): String {
@@ -72,7 +73,7 @@ class SemanticVersion(
         val TEXT_PRIORITIES = mapOf(
             "snapshot" to 0,
             "rc" to 1,
-            "pre" to 1
+            "pre" to 1,
         )
 
         /**
@@ -85,6 +86,14 @@ class SemanticVersion(
          */
         fun release(vararg parts: Int) = SemanticVersion(parts.map { ReleasePart(it, it.toString()) })
 
+        fun tryParse(value: String): SemanticVersion? {
+            return try {
+                parse(value)
+            } catch (e: IllegalArgumentException) {
+                null
+            }
+        }
+
         /**
          * Parses a version string into a comparable representation.
          * @throws IllegalArgumentException if any part of the version string cannot be parsed as integer or split into text parts.
@@ -96,7 +105,7 @@ class SemanticVersion(
                 } else {
                     throw IllegalArgumentException(
                         "Failed to parse version part as integer: $part " +
-                            "(whole version text: $value)"
+                            "(whole version text: $value)",
                     )
                 }
 
@@ -105,7 +114,7 @@ class SemanticVersion(
                 versionPart: String,
                 preReleasePart: String,
                 separator: Char,
-                versionString: String
+                versionString: String,
             ): VersionPart {
                 val version = parseInt(versionPart)
                 if (!preReleasePart.contains('.')) {
@@ -130,7 +139,8 @@ class SemanticVersion(
                 }
             }
 
-            val mainPartAndMetadata = value.split("+", limit = 2)
+            val decodedValue = value.split('+').joinToString("+") { URLDecoder.decode(it, Charsets.UTF_8) }
+            val mainPartAndMetadata = decodedValue.split("+", limit = 2)
             val mainPart = mainPartAndMetadata[0]
             val metadata = mainPartAndMetadata.getOrNull(1) ?: ""
 
@@ -194,7 +204,7 @@ class SemanticVersion(
                 val version: Int,
                 val separator: Char,
                 val subParts: List<VersionPart>,
-                override val versionString: String
+                override val versionString: String,
             ) : VersionPart() {
 
                 override fun compareTo(other: VersionPart): Int =

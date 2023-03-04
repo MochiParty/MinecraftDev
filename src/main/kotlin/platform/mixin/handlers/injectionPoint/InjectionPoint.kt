@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -13,6 +13,8 @@ package com.demonwav.mcdev.platform.mixin.handlers.injectionPoint
 import com.demonwav.mcdev.platform.mixin.reference.MixinSelector
 import com.demonwav.mcdev.platform.mixin.reference.toMixinString
 import com.demonwav.mcdev.platform.mixin.util.MixinConstants.Classes.SHIFT
+import com.demonwav.mcdev.platform.mixin.util.fakeResolve
+import com.demonwav.mcdev.platform.mixin.util.findOrConstructSourceMethod
 import com.demonwav.mcdev.util.constantStringValue
 import com.demonwav.mcdev.util.constantValue
 import com.demonwav.mcdev.util.equivalentTo
@@ -25,6 +27,7 @@ import com.demonwav.mcdev.util.shortName
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.extensions.RequiredElement
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.KeyedExtensionCollector
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.JavaRecursiveElementVisitor
@@ -48,6 +51,7 @@ import com.intellij.util.xmlb.annotations.Attribute
 import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.InsnList
+import org.objectweb.asm.tree.MethodInsnNode
 import org.objectweb.asm.tree.MethodNode
 
 abstract class InjectionPoint<T : PsiElement> {
@@ -58,100 +62,6 @@ abstract class InjectionPoint<T : PsiElement> {
         fun byAtCode(atCode: String): InjectionPoint<*>? {
             return COLLECTOR.findSingle(atCode)
         }
-
-        fun addStandardFilters(at: PsiAnnotation, targetClass: ClassNode, collectVisitor: CollectVisitor<*>) {
-            addShiftSupport(at, collectVisitor)
-            addSliceFilter(at, targetClass, collectVisitor)
-            // make sure the ordinal filter is last, so that the ordinal only increments once the other filters have passed
-            addOrdinalFilter(at, collectVisitor)
-        }
-
-        private fun addShiftSupport(at: PsiAnnotation, collectVisitor: CollectVisitor<*>) {
-            val shiftAttr = at.findDeclaredAttributeValue("shift") as? PsiExpression ?: return
-            val shiftReference = PsiUtil.skipParenthesizedExprDown(shiftAttr) as? PsiReferenceExpression ?: return
-            val shift = shiftReference.resolve() as? PsiEnumConstant ?: return
-            val containingClass = shift.containingClass ?: return
-            val shiftClass = JavaPsiFacade.getInstance(at.project).findClass(SHIFT, at.resolveScope) ?: return
-            if (!(containingClass equivalentTo shiftClass)) return
-            when (shift.name) {
-                "BEFORE" -> collectVisitor.shiftBy = -1
-                "AFTER" -> collectVisitor.shiftBy = 1
-                "BY" -> {
-                    val by = at.findDeclaredAttributeValue("by")?.constantValue as? Int ?: return
-                    collectVisitor.shiftBy = by
-                }
-            }
-        }
-
-        private fun addSliceFilter(at: PsiAnnotation, targetClass: ClassNode, collectVisitor: CollectVisitor<*>) {
-            // resolve slice annotation, take into account slice id if present
-            val sliceId = at.findDeclaredAttributeValue("slice")?.constantStringValue
-            val parentAnnotation = at.parentOfType<PsiAnnotation>() ?: return
-            val slices = parentAnnotation.findDeclaredAttributeValue("slice")?.findAnnotations() ?: return
-            val slice = if (sliceId != null) {
-                slices.singleOrNull { aSlice ->
-                    val aSliceId = aSlice.findDeclaredAttributeValue("id")?.constantStringValue
-                        ?: return@singleOrNull false
-                    aSliceId == sliceId
-                }
-            } else {
-                slices.singleOrNull()
-            } ?: return
-
-            // precompute what we can
-            val from = slice.findDeclaredAttributeValue("from") as? PsiAnnotation
-            val to = slice.findDeclaredAttributeValue("to") as? PsiAnnotation
-            if (from == null && to == null) {
-                return
-            }
-            val fromSelector = from?.findDeclaredAttributeValue("value")?.constantStringValue?.let { atCode ->
-                SliceSelector.values().firstOrNull { atCode.endsWith(":${it.name}") }
-            } ?: SliceSelector.FIRST
-            val toSelector = to?.findDeclaredAttributeValue("value")?.constantStringValue?.let { atCode ->
-                SliceSelector.values().firstOrNull { atCode.endsWith(":${it.name}") }
-            } ?: SliceSelector.FIRST
-
-            fun resolveSliceIndex(
-                sliceAt: PsiAnnotation?,
-                selector: SliceSelector,
-                insns: InsnList,
-                method: MethodNode
-            ): Int? {
-                return sliceAt?.let {
-                    val results = AtResolver(sliceAt, targetClass, method).resolveInstructions()
-                    val insn = if (selector == SliceSelector.LAST) {
-                        results.lastOrNull()?.insn
-                    } else {
-                        results.firstOrNull()?.insn
-                    }
-                    insn?.let { insns.indexOf(it) }
-                }
-            }
-
-            // allocate lazy indexes so we don't have to re-run the at resolver for the slices each time
-            var fromInsnIndex: Int? = null
-            var toInsnIndex: Int? = null
-
-            collectVisitor.addResultFilter("slice") { result, method ->
-                val insns = method.instructions ?: return@addResultFilter true
-                if (fromInsnIndex == null) {
-                    fromInsnIndex = resolveSliceIndex(from, fromSelector, insns, method) ?: 0
-                }
-                if (toInsnIndex == null) {
-                    toInsnIndex = resolveSliceIndex(to, toSelector, insns, method) ?: insns.size()
-                }
-
-                insns.indexOf(result.insn) in fromInsnIndex!!..toInsnIndex!!
-            }
-        }
-
-        private fun addOrdinalFilter(at: PsiAnnotation, collectVisitor: CollectVisitor<*>) {
-            val ordinal = at.findDeclaredAttributeValue("ordinal")?.constantValue as? Int ?: return
-            if (ordinal < 0) return
-            collectVisitor.addResultFilter("ordinal") { _, _ ->
-                collectVisitor.ordinal++ == ordinal
-            }
-        }
     }
 
     open fun usesMemberReference() = false
@@ -159,21 +69,21 @@ abstract class InjectionPoint<T : PsiElement> {
     abstract fun createNavigationVisitor(
         at: PsiAnnotation,
         target: MixinSelector?,
-        targetClass: PsiClass
+        targetClass: PsiClass,
     ): NavigationVisitor?
 
     abstract fun doCreateCollectVisitor(
         at: PsiAnnotation,
         target: MixinSelector?,
         targetClass: ClassNode,
-        mode: CollectVisitor.Mode
+        mode: CollectVisitor.Mode,
     ): CollectVisitor<T>?
 
     fun createCollectVisitor(
         at: PsiAnnotation,
         target: MixinSelector?,
         targetClass: ClassNode,
-        mode: CollectVisitor.Mode
+        mode: CollectVisitor.Mode,
     ): CollectVisitor<T>? {
         return doCreateCollectVisitor(at, target, targetClass, mode)?.also {
             addFilters(at, targetClass, it)
@@ -182,6 +92,100 @@ abstract class InjectionPoint<T : PsiElement> {
 
     protected open fun addFilters(at: PsiAnnotation, targetClass: ClassNode, collectVisitor: CollectVisitor<T>) {
         addStandardFilters(at, targetClass, collectVisitor)
+    }
+
+    fun addStandardFilters(at: PsiAnnotation, targetClass: ClassNode, collectVisitor: CollectVisitor<*>) {
+        addShiftSupport(at, targetClass, collectVisitor)
+        addSliceFilter(at, targetClass, collectVisitor)
+        // make sure the ordinal filter is last, so that the ordinal only increments once the other filters have passed
+        addOrdinalFilter(at, targetClass, collectVisitor)
+    }
+
+    protected open fun addShiftSupport(at: PsiAnnotation, targetClass: ClassNode, collectVisitor: CollectVisitor<*>) {
+        val shiftAttr = at.findDeclaredAttributeValue("shift") as? PsiExpression ?: return
+        val shiftReference = PsiUtil.skipParenthesizedExprDown(shiftAttr) as? PsiReferenceExpression ?: return
+        val shift = shiftReference.resolve() as? PsiEnumConstant ?: return
+        val containingClass = shift.containingClass ?: return
+        val shiftClass = JavaPsiFacade.getInstance(at.project).findClass(SHIFT, at.resolveScope) ?: return
+        if (!(containingClass equivalentTo shiftClass)) return
+        when (shift.name) {
+            "BEFORE" -> collectVisitor.shiftBy = -1
+            "AFTER" -> collectVisitor.shiftBy = 1
+            "BY" -> {
+                val by = at.findDeclaredAttributeValue("by")?.constantValue as? Int ?: return
+                collectVisitor.shiftBy = by
+            }
+        }
+    }
+
+    protected open fun addSliceFilter(at: PsiAnnotation, targetClass: ClassNode, collectVisitor: CollectVisitor<*>) {
+        // resolve slice annotation, take into account slice id if present
+        val sliceId = at.findDeclaredAttributeValue("slice")?.constantStringValue
+        val parentAnnotation = at.parentOfType<PsiAnnotation>() ?: return
+        val slices = parentAnnotation.findDeclaredAttributeValue("slice")?.findAnnotations() ?: return
+        val slice = if (sliceId != null) {
+            slices.singleOrNull { aSlice ->
+                val aSliceId = aSlice.findDeclaredAttributeValue("id")?.constantStringValue
+                    ?: return@singleOrNull false
+                aSliceId == sliceId
+            }
+        } else {
+            slices.singleOrNull()
+        } ?: return
+
+        // precompute what we can
+        val from = slice.findDeclaredAttributeValue("from") as? PsiAnnotation
+        val to = slice.findDeclaredAttributeValue("to") as? PsiAnnotation
+        if (from == null && to == null) {
+            return
+        }
+        val fromSelector = from?.findDeclaredAttributeValue("value")?.constantStringValue?.let { atCode ->
+            SliceSelector.values().firstOrNull { atCode.endsWith(":${it.name}") }
+        } ?: SliceSelector.FIRST
+        val toSelector = to?.findDeclaredAttributeValue("value")?.constantStringValue?.let { atCode ->
+            SliceSelector.values().firstOrNull { atCode.endsWith(":${it.name}") }
+        } ?: SliceSelector.FIRST
+
+        fun resolveSliceIndex(
+            sliceAt: PsiAnnotation?,
+            selector: SliceSelector,
+            insns: InsnList,
+            method: MethodNode,
+        ): Int? {
+            return sliceAt?.let {
+                val results = AtResolver(sliceAt, targetClass, method).resolveInstructions()
+                val insn = if (selector == SliceSelector.LAST) {
+                    results.lastOrNull()?.insn
+                } else {
+                    results.firstOrNull()?.insn
+                }
+                insn?.let { insns.indexOf(it) }
+            }
+        }
+
+        // allocate lazy indexes so we don't have to re-run the at resolver for the slices each time
+        var fromInsnIndex: Int? = null
+        var toInsnIndex: Int? = null
+
+        collectVisitor.addResultFilter("slice") { result, method ->
+            val insns = method.instructions ?: return@addResultFilter true
+            if (fromInsnIndex == null) {
+                fromInsnIndex = resolveSliceIndex(from, fromSelector, insns, method) ?: 0
+            }
+            if (toInsnIndex == null) {
+                toInsnIndex = resolveSliceIndex(to, toSelector, insns, method) ?: insns.size()
+            }
+
+            insns.indexOf(result.insn) in fromInsnIndex!!..toInsnIndex!!
+        }
+    }
+
+    protected open fun addOrdinalFilter(at: PsiAnnotation, targetClass: ClassNode, collectVisitor: CollectVisitor<*>) {
+        val ordinal = at.findDeclaredAttributeValue("ordinal")?.constantValue as? Int ?: return
+        if (ordinal < 0) return
+        collectVisitor.addResultFilter("ordinal") { _, _ ->
+            collectVisitor.ordinal++ == ordinal
+        }
     }
 
     abstract fun createLookup(targetClass: ClassNode, result: CollectVisitor.Result<T>): LookupElementBuilder?
@@ -224,19 +228,19 @@ abstract class QualifiedInjectionPoint<T : PsiMember> : InjectionPoint<T>() {
 
     final override fun createLookup(
         targetClass: ClassNode,
-        result: CollectVisitor.Result<T>
+        result: CollectVisitor.Result<T>,
     ): LookupElementBuilder {
         return qualifyLookup(
             createLookup(targetClass, result.target, result.qualifier ?: targetClass.name),
             targetClass,
-            result.target
+            result.target,
         )
     }
 
     private fun qualifyLookup(
         builder: LookupElementBuilder,
         targetClass: ClassNode,
-        m: T
+        m: T,
     ): LookupElementBuilder {
         val owner = m.containingClass ?: return builder
         return if (targetClass.name == owner.fullQualifiedName?.replace('.', '/')) {
@@ -255,7 +259,7 @@ abstract class AbstractMethodInjectionPoint : QualifiedInjectionPoint<PsiMethod>
             m,
             m.getQualifiedMemberReference(owner).toMixinString(),
             PsiSubstitutor.EMPTY,
-            null
+            null,
         )
             .setBoldIfInClass(m, targetClass)
             .withPresentableText(m.internalName) // Display internal name (e.g. <init> for constructors)
@@ -350,7 +354,7 @@ abstract class CollectVisitor<T : PsiElement>(protected val mode: Mode) {
     protected fun addResult(
         insn: AbstractInsnNode,
         element: T,
-        qualifier: String? = null
+        qualifier: String? = null,
     ) {
         // apply shift.
         // being able to break out of the shift loops is important to prevent IDE freezes in case of large shift bys.
@@ -371,7 +375,7 @@ abstract class CollectVisitor<T : PsiElement>(protected val mode: Mode) {
             }
         }
 
-        val result = Result(nextIndex++, shiftedInsn ?: return, element, qualifier)
+        val result = Result(nextIndex++, insn, shiftedInsn ?: return, element, qualifier)
         var isFiltered = false
         for ((name, filter) in resultFilters) {
             if (!filter(result, method)) {
@@ -390,6 +394,7 @@ abstract class CollectVisitor<T : PsiElement>(protected val mode: Mode) {
         }
     }
 
+    @Suppress("MemberVisibilityCanBePrivate")
     protected fun stopWalking() {
         throw StopWalkingException()
     }
@@ -402,12 +407,34 @@ abstract class CollectVisitor<T : PsiElement>(protected val mode: Mode) {
 
     data class Result<T : PsiElement>(
         val index: Int,
+        val originalInsn: AbstractInsnNode,
         val insn: AbstractInsnNode,
         val target: T,
-        val qualifier: String? = null
+        val qualifier: String? = null,
     )
 
     enum class Mode { MATCH_ALL, MATCH_FIRST, COMPLETION }
+}
+
+fun nodeMatchesSelector(
+    insn: MethodInsnNode,
+    mode: CollectVisitor.Mode,
+    selector: MixinSelector,
+    project: Project,
+): PsiMethod? {
+    if (mode != CollectVisitor.Mode.COMPLETION) {
+        if (!selector.matchMethod(insn.owner, insn.name, insn.desc)) {
+            return null
+        }
+    }
+
+    val fakeMethod = insn.fakeResolve()
+
+    return fakeMethod.method.findOrConstructSourceMethod(
+        fakeMethod.clazz,
+        project,
+        canDecompile = false,
+    )
 }
 
 typealias CollectResultFilter<T> = (CollectVisitor.Result<T>, MethodNode) -> Boolean

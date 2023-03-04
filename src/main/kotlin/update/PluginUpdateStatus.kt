@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -26,7 +26,7 @@ sealed class PluginUpdateStatus : Comparable<PluginUpdateStatus> {
     }
 
     object LatestVersionInstalled : PluginUpdateStatus() {
-        override fun getVersionString(): String? = PluginUtil.pluginVersion
+        override fun getVersionString(): String = PluginUtil.pluginVersion
     }
 
     class Update(val pluginDescriptor: IdeaPluginDescriptor, val hostToInstallFrom: String?) : PluginUpdateStatus() {

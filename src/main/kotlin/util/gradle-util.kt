@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -36,7 +36,7 @@ fun runGradleTaskWithCallback(
     project: Project,
     dir: Path,
     func: (ExternalSystemTaskExecutionSettings) -> Unit,
-    callback: TaskCallback
+    callback: TaskCallback,
 ) {
     val settings = ExternalSystemTaskExecutionSettings().apply {
         externalSystemIdString = GradleConstants.SYSTEM_ID.id
@@ -52,7 +52,7 @@ fun runGradleTaskWithCallback(
         GradleConstants.SYSTEM_ID,
         callback,
         ProgressExecutionMode.IN_BACKGROUND_ASYNC,
-        false
+        false,
     )
 }
 

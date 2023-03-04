@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -17,5 +17,5 @@ object NbttFileType : LanguageFileType(NbttLanguage) {
     override fun getIcon() = PlatformAssets.MINECRAFT_ICON
     override fun getName() = "NBTT"
     override fun getDefaultExtension() = "nbtt"
-    override fun getDescription() = "NBT Text Representation (Don't Use This One)"
+    override fun getDescription() = "NBT text representation (don't use this one)"
 }

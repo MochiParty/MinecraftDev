@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -12,5 +12,6 @@ package com.demonwav.mcdev.platform.mcp.srg
 
 enum class SrgType(val srgParser: SrgParser) {
     SRG(StandardSrgParser),
-    TSRG(TinySrgParser);
+    TSRG(TinySrgParser),
+    ;
 }

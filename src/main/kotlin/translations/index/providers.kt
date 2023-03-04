@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -14,6 +14,7 @@ import com.demonwav.mcdev.translations.Translation
 import com.demonwav.mcdev.translations.lang.LangFile
 import com.demonwav.mcdev.translations.lang.LangFileType
 import com.demonwav.mcdev.translations.lang.gen.psi.LangEntry
+import com.demonwav.mcdev.util.childrenOfType
 import com.google.gson.JsonParser
 import com.google.gson.JsonSyntaxException
 import com.intellij.json.JsonFileType
@@ -30,7 +31,6 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.util.indexing.FileContent
-import org.jetbrains.plugins.groovy.lang.psi.util.childrenOfType
 
 interface TranslationProvider {
     fun map(domain: String, input: FileContent): TranslationIndexEntry?
@@ -38,9 +38,11 @@ interface TranslationProvider {
     fun findElements(project: Project, file: VirtualFile, key: String): List<PsiElement>
 
     companion object {
+        // Use name, using FileType as map keys can leak and cause problems with plugin unloading
+        // name is unique among all file types
         val INSTANCES = mapOf(
-            JsonFileType.INSTANCE to JsonTranslationProvider,
-            LangFileType to LangTranslationProvider
+            JsonFileType.INSTANCE.name to JsonTranslationProvider,
+            LangFileType.name to LangTranslationProvider,
         )
     }
 }
@@ -67,19 +69,19 @@ object JsonTranslationProvider : TranslationProvider {
         val psiFile = PsiManager.getInstance(project).findFile(file) as? JsonFile ?: return emptyList()
         return CachedValuesManager.getCachedValue(
             psiFile,
-            Key<CachedValue<List<JsonProperty>>>("translation_lookup.$key")
+            Key<CachedValue<List<JsonProperty>>>("translation_lookup.$key"),
         ) {
             val value = psiFile.topLevelValue as? JsonObject
             CachedValueProvider.Result.create(
                 value?.propertyList?.filter { it.name == key } ?: emptyList(),
-                PsiModificationTracker.MODIFICATION_COUNT
+                PsiModificationTracker.MODIFICATION_COUNT,
             )
         }
     }
 }
 
 object LangTranslationProvider : TranslationProvider {
-    override fun map(domain: String, input: FileContent): TranslationIndexEntry? {
+    override fun map(domain: String, input: FileContent): TranslationIndexEntry {
         val translations = input.contentAsText
             .lineSequence()
             .filter { !it.startsWith("#") && it.isNotEmpty() }
@@ -94,11 +96,11 @@ object LangTranslationProvider : TranslationProvider {
         val psiFile = PsiManager.getInstance(project).findFile(file) as? LangFile ?: return emptyList()
         return CachedValuesManager.getCachedValue(
             psiFile,
-            Key("translation_lookup.$key")
+            Key("translation_lookup.$key"),
         ) {
             CachedValueProvider.Result.create(
                 psiFile.childrenOfType<LangEntry>().filter { it.key == key },
-                PsiModificationTracker.MODIFICATION_COUNT
+                PsiModificationTracker.MODIFICATION_COUNT,
             )
         }
     }

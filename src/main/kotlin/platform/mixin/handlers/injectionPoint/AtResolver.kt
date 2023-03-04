@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -55,7 +55,7 @@ import org.objectweb.asm.tree.MethodNode
 class AtResolver(
     private val at: PsiAnnotation,
     private val targetClass: ClassNode,
-    private val targetMethod: MethodNode
+    private val targetMethod: MethodNode,
 ) {
     companion object {
         private fun getInjectionPoint(at: PsiAnnotation): InjectionPoint<*>? {
@@ -102,7 +102,7 @@ class AtResolver(
             at,
             target,
             targetClass,
-            CollectVisitor.Mode.MATCH_FIRST
+            CollectVisitor.Mode.MATCH_FIRST,
         )
         if (collectVisitor == null) {
             // syntax error in target
@@ -153,7 +153,7 @@ class AtResolver(
             targetClass,
             at.project,
             GlobalSearchScope.allScope(at.project),
-            canDecompile = true
+            canDecompile = true,
         ) ?: return emptyList()
         val targetPsiClass = targetElement.parentOfType<PsiClass>() ?: return emptyList()
 

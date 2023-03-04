@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -30,7 +30,7 @@ class ModsTomlDocumentationProvider : DocumentationProvider {
         editor: Editor,
         file: PsiFile,
         contextElement: PsiElement?,
-        targetOffset: Int
+        targetOffset: Int,
     ): PsiElement? {
         if (!isModsToml(contextElement)) {
             return null

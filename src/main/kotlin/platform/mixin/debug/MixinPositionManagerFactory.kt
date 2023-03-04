@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -16,5 +16,5 @@ import com.intellij.debugger.engine.DebugProcess
 
 class MixinPositionManagerFactory : PositionManagerFactory() {
 
-    override fun createPositionManager(process: DebugProcess): PositionManager? = MixinPositionManager(process)
+    override fun createPositionManager(process: DebugProcess): PositionManager = MixinPositionManager(process)
 }

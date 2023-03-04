@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -26,7 +26,7 @@ class FabricLoomDataService : AbstractProjectDataService<FabricLoomData, Module>
         toImport: Collection<DataNode<FabricLoomData>>,
         projectData: ProjectData?,
         project: Project,
-        modelsProvider: IdeModifiableModelsProvider
+        modelsProvider: IdeModifiableModelsProvider,
     ) {
         // Dummy service to enable platform-side DataNodes cache
     }

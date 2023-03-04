@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -59,8 +59,12 @@ object TranslationFiles {
         file?.nameWithoutExtension?.lowercase(Locale.ENGLISH)
 
     tailrec fun seekTranslation(element: PsiElement): PsiNamedElement? {
-        return toTranslation(element)?.let { element as? PsiNamedElement }
-            ?: seekTranslation(element.parent ?: return null)
+        // don't use elvis here, K2 doesn't think it's a tail recursive call if you do
+        val res = toTranslation(element)?.let { element as? PsiNamedElement }
+        if (res != null) {
+            return res
+        }
+        return seekTranslation(element.parent ?: return null)
     }
 
     fun toTranslation(element: PsiElement): Translation? =
@@ -68,7 +72,7 @@ object TranslationFiles {
             when {
                 element is JsonProperty && element.value is JsonStringLiteral -> Translation(
                     element.name,
-                    (element.value as JsonStringLiteral).value
+                    (element.value as JsonStringLiteral).value,
                 )
                 element is LangEntry -> Translation(element.key, element.value)
                 else -> null
@@ -116,7 +120,7 @@ object TranslationFiles {
 
         val files = FileTypeIndex.getFiles(
             if (jsonVersion) JsonFileType.INSTANCE else LangFileType,
-            GlobalSearchScope.moduleScope(module)
+            GlobalSearchScope.moduleScope(module),
         ).filter { getLocale(it) == TranslationConstants.DEFAULT_LOCALE }
         val domains = files.asSequence().mapNotNull { it.mcDomain }.distinct().sorted().toList()
         if (domains.size > 1) {
@@ -125,7 +129,7 @@ object TranslationFiles {
                     .createPopupChooserBuilder(domains)
                     .setTitle("Choose Resource Domain")
                     .setAdText(
-                        "There are multiple resource domains with localization files, choose one for this translation."
+                        "There are multiple resource domains with localization files, choose one for this translation.",
                     )
                     .setItemChosenCallback { domain ->
                         write(files.filter { f -> f.mcDomain == domain })
@@ -162,7 +166,7 @@ object TranslationFiles {
                 doc.setText("{\n$content\n}")
             }
             else -> throw IllegalArgumentException(
-                "Cannot replace translations in file '${file.name}' of unknown type!"
+                "Cannot replace translations in file '${file.name}' of unknown type!",
             )
         }
     }
@@ -171,7 +175,7 @@ object TranslationFiles {
         val doc = FileDocumentManager.getInstance().getDocument(this.virtualFile) ?: return
         val content = generateLangFile(
             this.lastChild != null && this.lastChild.node.elementType != LangTypes.LINE_ENDING,
-            entries
+            entries,
         )
         doc.insertString(this.lastChild?.textOffset ?: 0, content)
     }
@@ -188,6 +192,9 @@ object TranslationFiles {
                 is FileEntry.Comment -> result.append("# ${entry.text}\n")
                 is FileEntry.Translation -> result.append("${entry.key}=${entry.text}\n")
                 FileEntry.EmptyLine -> result.append('\n')
+                // TODO: IntelliJ shows a false error here without the `else`. The compiler doesn't care because
+                //  FileEntry is a sealed class. When this bug in IntelliJ is fixed, remove this `else`.
+                else -> {}
             }
         }
 
@@ -206,7 +213,7 @@ object TranslationFiles {
     private fun generateJsonFile(
         leadingComma: Boolean,
         indent: CharSequence,
-        entries: Iterable<FileEntry>
+        entries: Iterable<FileEntry>,
     ): CharSequence {
         val result = StringBuilder()
 
@@ -222,19 +229,22 @@ object TranslationFiles {
                     result.append("\"${StringUtil.escapeStringCharacters(entry.text)}\",\n")
                 }
                 FileEntry.EmptyLine -> result.append('\n')
+                // TODO: IntelliJ shows a false error here without the `else`. The compiler doesn't care because
+                //  FileEntry is a sealed class. When this bug in IntelliJ is fixed, remove this `else`.
+                else -> {}
             }
         }
 
         return result.removeSuffix("\n").removeSuffix(",")
     }
 
-    fun buildFileEntries(project: Project, locale: String, entries: Sequence<Translation>, keepComments: Int) =
+    fun buildFileEntries(project: Project, locale: String, entries: Iterable<Translation>, keepComments: Int) =
         sequence {
             for (entry in entries) {
                 val langElement = TranslationInverseIndex.findElements(
                     entry.key,
                     GlobalSearchScope.allScope(project),
-                    locale
+                    locale,
                 )
                     .asSequence()
                     .mapNotNull { it as? LangEntry }
@@ -249,7 +259,7 @@ object TranslationFiles {
         element: PsiElement,
         maxDepth: Int,
         acc: MutableList<String> = mutableListOf(),
-        depth: Int = 0
+        depth: Int = 0,
     ): List<String> {
         if (maxDepth != 0 && depth >= maxDepth) {
             return acc
@@ -277,7 +287,7 @@ object TranslationFiles {
             .getContainingFiles(
                 TranslationIndex.NAME,
                 TranslationConstants.DEFAULT_LOCALE,
-                GlobalSearchScope.moduleScope(module)
+                GlobalSearchScope.moduleScope(module),
             )
             .asSequence()
             .filter { domain == null || it.mcDomain == domain }
@@ -291,8 +301,8 @@ object TranslationFiles {
                 when {
                     child is LangEntry ->
                         elements.add(Key(Regex.escape(child.key).toRegex()))
-                    child.node.elementType == LangTypes.LINE_ENDING
-                        && child.prevSibling.node.elementType == LangTypes.LINE_ENDING ->
+                    child.node.elementType == LangTypes.LINE_ENDING &&
+                        child.prevSibling.node.elementType == LangTypes.LINE_ENDING ->
                         elements.add(EmptyLine)
                 }
             }

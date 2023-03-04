@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -22,7 +22,13 @@ enum class License(private val displayName: String, val id: String) {
     GPL_3("GNU GPL 3.0", "GPL-3.0"),
     AGPL_3("GNU AGPL 3.0", "AGPL-3.0"),
     UNLICENSE("Unlicense", "unlicense"),
+
     ;
 
     override fun toString() = displayName
+
+    companion object {
+        private val byId = values().associateBy { it.id }
+        fun byId(id: String) = byId[id]
+    }
 }

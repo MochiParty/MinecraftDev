@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -18,7 +18,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import java.util.jar.JarFile
 
 class ArchitecturyPresentationProvider : LibraryPresentationProvider<LibraryVersionProperties>(
-    ARCHITECTURY_LIBRARY_KIND
+    ARCHITECTURY_LIBRARY_KIND,
 ) {
     override fun getIcon(properties: LibraryVersionProperties?) = PlatformAssets.ARCHITECTURY_ICON
 

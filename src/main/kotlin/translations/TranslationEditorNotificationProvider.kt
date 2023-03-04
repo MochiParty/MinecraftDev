@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -21,21 +21,25 @@ import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.ui.EditorNotificationPanel
+import com.intellij.ui.EditorNotificationProvider
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
+import java.util.function.Function
+import javax.swing.JComponent
 
-class TranslationEditorNotificationProvider :
-    EditorNotifications.Provider<TranslationEditorNotificationProvider.InfoPanel>() {
+class TranslationEditorNotificationProvider : EditorNotificationProvider {
     private var show: Boolean = true
 
-    override fun getKey() = KEY
+    override fun collectNotificationData(
+        project: Project,
+        file: VirtualFile,
+    ): Function<in FileEditor, out JComponent?> = Function { createNotificationPanel(file, project) }
 
-    override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): InfoPanel? {
+    private fun createNotificationPanel(file: VirtualFile, project: Project): InfoPanel? {
         val locale = TranslationFiles.getLocale(file)
         if (!show || !TranslationFiles.isTranslationFile(file) || locale == TranslationConstants.DEFAULT_LOCALE) {
             return null
@@ -44,9 +48,9 @@ class TranslationEditorNotificationProvider :
         val missingTranslations = getMissingTranslations(project, file)
         if (missingTranslations.any()) {
             val panel = InfoPanel()
-            panel.setText("Translation file doesn't match default one (${TranslationConstants.DEFAULT_LOCALE} locale).")
+            panel.text = "Translation file doesn't match default one (${TranslationConstants.DEFAULT_LOCALE} locale)."
             panel.createActionLabel(
-                "Add missing default entries (won't reflect changes in original English localization)"
+                "Add missing default entries (won't reflect changes in original English localization)",
             ) {
                 val psi = PsiManager.getInstance(project).findFile(file) ?: return@createActionLabel
                 psi.applyWriteAction {
@@ -66,7 +70,7 @@ class TranslationEditorNotificationProvider :
                     project,
                     "Would you like to sort all translations now?",
                     "Sort Translations",
-                    Messages.getQuestionIcon()
+                    Messages.getQuestionIcon(),
                 )
                 if (sort == Messages.YES) {
                     TranslationSorter.query(project, psi, Ordering.LIKE_DEFAULT)
@@ -97,9 +101,5 @@ class TranslationEditorNotificationProvider :
             val color = EditorColorsManager.getInstance().globalScheme.getColor(EditorColors.NOTIFICATION_BACKGROUND)
             return color ?: UIUtil.getPanelBackground()
         }
-    }
-
-    companion object {
-        private val KEY = Key.create<InfoPanel>("minecraft.editors.translations")
     }
 }

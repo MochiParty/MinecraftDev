@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -37,7 +37,7 @@ data class Template(val elements: List<TemplateElement>) {
                     }
                 } else {
                     listOf()
-                }
+                },
             )
 
         private val keyRegex = Regex("([?!]?[+*]?)([^+*!?]*)([?!]?[+*]?)")

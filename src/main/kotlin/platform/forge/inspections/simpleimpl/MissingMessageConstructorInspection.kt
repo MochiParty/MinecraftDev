@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -30,7 +30,7 @@ class MissingMessageConstructorInspection : BaseInspection() {
         val messageClass = infos[0] as PsiClass
 
         return if (messageClass.isWritable) {
-            AddEmptyConstructorInspectionGadgetsFix(messageClass, "Add empty constructor")
+            AddEmptyConstructorInspectionGadgetsFix
         } else {
             null
         }

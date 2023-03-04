@@ -3,7 +3,7 @@
  *
  * https://minecraftdev.org
  *
- * Copyright (c) 2021 minecraft-dev
+ * Copyright (c) 2023 minecraft-dev
  *
  * MIT License
  */
@@ -40,7 +40,7 @@ class LangBlock(node: ASTNode, wrap: Wrap?, alignment: Alignment?, private val s
                     child,
                     Wrap.createWrap(WrapType.NONE, false),
                     Alignment.createAlignment(),
-                    spacingBuilder
+                    spacingBuilder,
                 )
                 blocks.add(block)
             }
@@ -50,7 +50,7 @@ class LangBlock(node: ASTNode, wrap: Wrap?, alignment: Alignment?, private val s
         return blocks
     }
 
-    override fun getIndent() = Indent.getNoneIndent()
+    override fun getIndent(): Indent = Indent.getNoneIndent()
 
     override fun getSpacing(child1: Block?, child2: Block) = spacingBuilder.getSpacing(this, child1, child2)
 
